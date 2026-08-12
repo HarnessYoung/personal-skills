@@ -1,0 +1,27 @@
+{
+  "name": "cnsplots",
+  "version": "1.0.0",
+  "updated": "2026-08-12",
+  "summary": "Publication-quality scientific figures in Python via the cnsplots package.",
+  "agents": [
+    "codex",
+    "claude-code"
+  ],
+  "install_path": "~/.codex/skills/cnsplots",
+  "provenance": {
+    "relationship": "derivative-enhancement",
+    "upstream_project": "cnsplots",
+    "upstream_repo": "https://github.com/faridrashidi/cnsplots",
+    "upstream_skill_path": "src/cnsplots/_agent_skill/cnsplots",
+    "upstream_license": "BSD-3-Clause",
+    "upstream_license_url": "https://github.com/faridrashidi/cnsplots/blob/main/LICENSE.md",
+    "upstream_commit_pushed_at": "2026-08-10T13:24:51Z",
+    "verified_against_package_version": "0.6.0"
+  },
+  "verification": {
+    "date": "2026-08-12",
+    "python": "3.12.13",
+    "method": "clean venv install of cnsplots 0.6.0; ran all bundled scripts; executed SKILL.md baseline + multipanel examples; validated SVG/PNG artifacts and visually inspected the PNG.",
+    "result": "pass"
+  }
+}

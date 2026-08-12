@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>personal_skills</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header><div class="wrap">
+<h1>personal_skills</h1>
+<p class="sub">Personal agent skills · <a href="https://github.com/HarnessYoung/personal-skills">GitHub</a></p>
+</div></header>
+<div class="wrap">
+
+
+<p>Version-controlled <a href="https://developers.openai.com/codex/">Codex</a> and
+Claude Code skills. Each skill ships its own version, provenance record, and
+executable verification scripts.</p>
+
+<h2>Skills</h2>
+<a class="card" href="skills/cnsplots.html">
+  <h3>cnsplots</h3>
+  <p>Publication-quality scientific figures in Python — Cell/Nature/Science styling,
+  pixel-exact sizing, statistical annotations, editable SVG/PDF export.</p>
+  <div class="badges">
+    <span class="badge">v1.0.0</span>
+    <span class="badge">derivative</span>
+    <span class="badge">BSD-3-Clause</span>
+    <span class="badge ok">verified · cnsplots 0.6.0</span>
+  </div>
+</a>
+
+<h2>Install</h2>
+<pre><code>git clone https://github.com/HarnessYoung/personal-skills.git
+cp -R personal_skills/skills/cnsplots ~/.codex/skills/cnsplots</code></pre>
+<p>Claude Code reads from <code>~/.claude/skills/</code> instead.</p>
+
+<h2>Repository layout</h2>
+<pre><code>skills/&lt;name&gt;/
+  SKILL.md        # the skill (YAML frontmatter + instructions)
+  skill.json      # version, provenance, verification record
+  CHANGELOG.md    # SemVer history
+  NOTICE.md       # upstream attribution
+  references/     # progressive-disclosure docs
+  scripts/        # executable helpers</code></pre>
+
+<h2>Versioning</h2>
+<p>Skills use SemVer <em>independently</em> of the tools they wrap. <strong>Major</strong>
+= breaking workflow change, <strong>minor</strong> = new capability, <strong>patch</strong>
+= clarification. Each skill also records the exact tool version it was last
+verified against, so staleness is visible rather than implicit.</p>
+
+<h2>Provenance</h2>
+<p>Every skill declares an origin: <code>original</code>,
+<code>derivative-enhancement</code>, or <code>vendored</code>. Derived skills name
+the upstream repo, keep its license, and include a file-level breakdown of what
+is inherited versus original. See
+<a href="https://github.com/HarnessYoung/personal-skills/blob/main/registry.json">registry.json</a>
+for the machine-readable index.</p>
+
+<footer>BSD-3-Clause · Derived skills retain upstream licenses. Built 2026-08-12.</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "registry_version": 1,
+  "owner": "HarnessYoung",
+  "updated": "2026-08-12",
+  "skills": [
+    {
+      "name": "cnsplots",
+      "version": "1.0.0",
+      "path": "skills/cnsplots",
+      "summary": "Publication-quality scientific figures in Python via the cnsplots package.",
+      "tags": [
+        "python",
+        "visualization",
+        "science",
+        "matplotlib",
+        "publication"
+      ],
+      "agents": [
+        "codex",
+        "claude-code"
+      ],
+      "origin": "derivative-enhancement",
+      "upstream": "https://github.com/faridrashidi/cnsplots",
+      "upstream_license": "BSD-3-Clause",
+      "verified_against": "cnsplots 0.6.0"
+    }
+  ]
+}

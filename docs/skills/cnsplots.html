@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cnsplots</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header><div class="wrap">
+<h1>cnsplots</h1>
+<p class="sub">Personal agent skills · <a href="https://github.com/HarnessYoung/personal-skills">GitHub</a></p>
+</div></header>
+<div class="wrap">
+<nav class="crumb"><a href="../index.html">personal_skills</a> / cnsplots</nav>
+
+<div class="badges" style="margin-bottom:20px">
+  <span class="badge">v1.0.0</span>
+  <span class="badge">derivative-enhancement</span>
+  <span class="badge">BSD-3-Clause</span>
+  <span class="badge ok">verified · cnsplots 0.6.0</span>
+</div>
+
+<p>Generates, revises, and debugs publication-quality scientific figures in Python
+using the <a href="https://github.com/faridrashidi/cnsplots">cnsplots</a> package.
+Triggers on requests for journal-style plots, multi-panel figures,
+survival/volcano/GSEA/ROC/heatmap plots, or Illustrator-editable vector output.</p>
+
+<blockquote><p><strong>Upstream ships its own skill.</strong> Running
+<code>cnsplots skill install</code> installs the official version. This one adds
+executable verification on top. Prefer upstream if you want to track it exactly.</p></blockquote>
+
+<h2>What it adds over upstream</h2>
+<table>
+<tr><th>Addition</th><th>Why it matters</th></tr>
+<tr><td><code>scripts/check_env.py</code></td><td>Reports interpreter, package version, backend, and whether <code>mutool</code> is installed, before any plotting is attempted.</td></tr>
+<tr><td><code>scripts/inspect_api.py</code></td><td>Prints the <em>installed</em> signature and docstring, so the agent stops guessing at API shapes that shift between releases.</td></tr>
+<tr><td><code>scripts/validate_output.py</code></td><td>Checks the artifact exists, is non-empty, has correct magic bytes, and counts SVG <code>&lt;text&gt;</code> elements to catch text flattened into paths.</td></tr>
+<tr><td><code>references/troubleshooting.md</code></td><td>13 documented failure modes with fixes.</td></tr>
+</table>
+
+<h2>Workflow the skill enforces</h2>
+<ul>
+<li>Probe the environment before writing code.</li>
+<li>Inspect the data, then confirm each function signature against the installed version.</li>
+<li>Build with <code>matplotlib.use("Agg")</code> for headless runs.</li>
+<li>Save, then <em>validate the artifact</em> — never claim success on unrun code.</li>
+<li>Report the script, output path, and every scientific assumption made.</li>
+</ul>
+
+<h2>Two traps it guards against</h2>
+<h3>Pixels, not inches</h3>
+<p><code>cns.figure(180, 150)</code> is 180×150 <strong>pixels</strong>. Writing
+<code>cns.figure(6, 4)</code> out of matplotlib habit yields a 6×4 pixel canvas.</p>
+
+<h3>Return types are not uniform</h3>
+<p><code>heatmapplot</code> and <code>dotplot</code> return backend-native plotter
+objects, <code>vennplot</code> returns a matplotlib-venn object, and
+<code>upsetplot</code> returns panel axes. None are a plain <code>Axes</code>, so a
+bare <code>.set(...)</code> raises <code>AttributeError</code>.</p>
+
+<h2>Verified example</h2>
+<pre><code>import matplotlib
+matplotlib.use("Agg")
+
+import cnsplots as cns
+
+df = cns.datasets.load_dataset("tips")
+
+mp = cns.multipanel(max_width=540)
+ax_a = mp.panel("A", width=150, height=150)
+cns.boxplot(data=df, x="day", y="total_bill", ax=ax_a)
+ax_b = mp.panel("B", width=150, height=150)
+cns.scatterplot(data=df, x="total_bill", y="tip", ax=ax_b)
+cns.savefig("multipanel.svg")</code></pre>
+
+<h2>Verification record</h2>
+<p>Tested 2026-08-12 in a clean venv on Python 3.12.13 with cnsplots 0.6.0: all three
+scripts run with correct exit codes, both <code>SKILL.md</code> examples execute,
+artifacts pass validation (11 and 28 <code>&lt;text&gt;</code> elements), and the
+rendered PNG was visually inspected. The documented <code>mutool</code>-missing
+fallback was confirmed to warn rather than fail.</p>
+
+<h2>Provenance</h2>
+<table>
+<tr><th>File</th><th>Origin</th></tr>
+<tr><td><code>SKILL.md</code></td><td>Restructured from upstream; workflow and rules rewritten</td></tr>
+<tr><td><code>references/plot-catalog.md</code></td><td>Derived from upstream, expanded</td></tr>
+<tr><td><code>references/troubleshooting.md</code></td><td>Original</td></tr>
+<tr><td><code>scripts/*.py</code></td><td>Original</td></tr>
+</table>
+<p>Upstream: <a href="https://github.com/faridrashidi/cnsplots">faridrashidi/cnsplots</a>
+(<code>src/cnsplots/_agent_skill/cnsplots</code>) by Farid Rashidi, BSD-3-Clause.</p>
+
+<h2>Files</h2>
+<ul>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/cnsplots/SKILL.md">SKILL.md</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/cnsplots/skill.json">skill.json</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/cnsplots/CHANGELOG.md">CHANGELOG.md</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/cnsplots/NOTICE.md">NOTICE.md</a></li>
+</ul>
+
+<footer>BSD-3-Clause · Derived skills retain upstream licenses. Built 2026-08-12.</footer>
+</div>
+</body>
+</html>
