@@ -10,6 +10,7 @@ and Claude Code.
 | Skill | Version | Origin | Verified against | Docs |
 | --- | --- | --- | --- | --- |
 | [`cnsplots`](skills/cnsplots) | 1.0.0 | derivative of [faridrashidi/cnsplots](https://github.com/faridrashidi/cnsplots) (BSD-3-Clause) | cnsplots 0.6.0 | [page](https://harnessyoung.github.io/personal-skills/skills/cnsplots.html) |
+| [`python-script-conventions`](skills/python-script-conventions) | 1.4.0 | original (Yusheng Yang, MIT) | snapshot 2026-08-12 | [page](https://harnessyoung.github.io/personal-skills/skills/python-script-conventions.html) |
 
 Machine-readable index: [`registry.json`](registry.json).
 
@@ -23,13 +24,15 @@ skills/<name>/
   NOTICE.md       # upstream attribution and license
   references/     # progressive-disclosure docs
   scripts/        # executable helpers
+  templates/      # code templates
 ```
 
 ## Install
 
 ```bash
 git clone https://github.com/HarnessYoung/personal-skills.git
-cp -R personal_skills/skills/cnsplots ~/.codex/skills/cnsplots
+cp -R personal-skills/skills/cnsplots ~/.codex/skills/cnsplots
+cp -R personal-skills/skills/python-script-conventions ~/.codex/skills/python-script-conventions
 ```
 
 Claude Code uses `~/.claude/skills/` instead. Verify a skill's environment:

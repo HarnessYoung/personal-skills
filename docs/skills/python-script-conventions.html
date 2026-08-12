@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>python-script-conventions</title>
+<link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+<header><div class="wrap">
+<h1>python-script-conventions</h1>
+<p class="sub">Personal agent skills · <a href="https://github.com/HarnessYoung/personal-skills">GitHub</a></p>
+</div></header>
+<div class="wrap">
+<nav class="crumb"><a href="../index.html">personal_skills</a> / python-script-conventions</nav>
+<div class="badges" style="margin-bottom:20px">
+  <span class="badge">v1.4.0</span>
+  <span class="badge original">original</span>
+  <span class="badge">MIT</span>
+  <span class="badge ok">verified 2026-08-12</span>
+</div>
+
+<p>Coding standards for Python 3.12+ scripts: section layout, import ordering,
+type hints, logging patterns, dataclass conventions, and AI-agent-friendly design
+principles. Triggers when generating, modifying, or reviewing <code>.py</code> files,
+especially for bioinformatics and data-science workflows.</p>
+
+<blockquote><p><strong>Original work.</strong> Created by Yusheng Yang. Not derived
+from an external project.</p></blockquote>
+
+<h2>What it enforces</h2>
+<table>
+<tr><th>Rule</th><th>Why it matters</th></tr>
+<tr><td>7-section layout</td><td>Imports → Decorators → Constants → Config → Logging → Core → Main. Dependencies flow top-to-bottom; no forward references.</td></tr>
+<tr><td>3-tier import grouping</td><td>stdlib → data (pandas/numpy) → third-party, sorted alphabetically. Makes dependency audits instant.</td></tr>
+<tr><td>All imports at file scope</td><td>No imports buried in function bodies, class definitions, or section headers. Linters catch unused imports reliably.</td></tr>
+<tr><td><code>pathlib.Path</code> everywhere</td><td>Replaces brittle <code>os.path.join</code> with composable, readable, type-safe paths.</td></tr>
+<tr><td>F-strings only</td><td>No <code>.format()</code> or <code>%</code>. Consistent, fast, readable interpolation.</td></tr>
+<tr><td><code>@dataclass(kw_only=True, slots=True, frozen=True)</code></td><td>Config objects are immutable by default. Hot-reloading is opt-in, not accidental.</td></tr>
+<tr><td><code>StrEnum</code> for grouped markers</td><td>Column names, operation modes, categorical statuses. Not for singleton constants.</td></tr>
+<tr><td>Guard clauses at function top</td><td>Edge cases return early; the happy path stays unindented.</td></tr>
+<tr><td>Single-line docstrings</td><td>Type hints carry the type info. Docstrings state purpose, not signature.</td></tr>
+<tr><td><code>@logger.catch</code> on core logic</td><td>Loguru captures tracebacks cleanly. No bare <code>print()</code> calls.</td></tr>
+<tr><td><code>match...case</code> for categorical branches</td><td>Replaces deep <code>if-elif</code> chains with exhaustiveness checking.</td></tr>
+</table>
+
+<h2>Two advanced patterns</h2>
+<h3>Signal-based classification</h3>
+<p>Replaces brittle <code>if-elif</code> chains with a declarative signal table + resolution
+engine. Every rule lives in data (a list of dataclass instances), not control flow.
+See <code>references/signal-based-classification.md</code> for the full recipe.</p>
+
+<h3>Stem-prefix text classification</h3>
+<p>Classifies every word in semi-structured text (phenotype descriptions, biological
+annotations) into semantic categories using exact + stem matching. Handles plurals,
+verb inflections, and hyphenated compounds without listing every form. See
+<code>references/stem-prefix-classification.md</code>.</p>
+
+<h2>Bundled reference docs</h2>
+<ul>
+<li><code>references/signal-based-classification.md</code> — declarative rule-based classifier pattern</li>
+<li><code>references/stem-prefix-classification.md</code> — keyword profile / vocabulary analysis</li>
+<li><code>references/module-level-docstring.md</code> — real-world docstring examples</li>
+<li><code>references/pombase-annotation-format.md</code> — S. pombe gene annotation reference</li>
+<li><code>templates/agent_script_template.py</code> — concrete 7-section implementation</li>
+</ul>
+
+<h2>When to use</h2>
+<ul>
+<li>Creating any new <code>.py</code> script in the workspace — load this skill first, then
+open <code>templates/agent_script_template.py</code> as the starting structure.</li>
+<li>Modifying an existing script — refactor to match when the edit is substantial
+(layout, imports, logging).</li>
+<li>Reviewing a PR or diff that includes Python files — use the checklist as review criteria.</li>
+<li>Generating a single-file script for <code>uv</code> or standalone execution.</li>
+</ul>
+
+<h2>When NOT to use</h2>
+<ul>
+<li>Libraries or packages with multiple modules (those follow their own structure).</li>
+<li>Jupyter notebooks (use the jupyter-live-kernel skill instead).</li>
+<li>Code snippets in markdown docs.</li>
+</ul>
+
+<h2>Verification record</h2>
+<p>Migrated 2026-08-12 from <code>Sotdo/personal_skills</code> as a snapshot copy.
+Frontmatter version (1.4.0) confirmed. Original author: Yusheng Yang.</p>
+
+<h2>Files</h2>
+<ul>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/python-script-conventions/SKILL.md">SKILL.md</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/python-script-conventions/skill.json">skill.json</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/python-script-conventions/CHANGELOG.md">CHANGELOG.md</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/blob/main/skills/python-script-conventions/NOTICE.md">NOTICE.md</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/tree/main/skills/python-script-conventions/references">references/</a></li>
+<li><a href="https://github.com/HarnessYoung/personal-skills/tree/main/skills/python-script-conventions/templates">templates/</a></li>
+</ul>
+
+<footer>BSD-3-Clause · Derived skills retain upstream licenses. Built 2026-08-12.</footer>
+</div>
+</body>
+</html>

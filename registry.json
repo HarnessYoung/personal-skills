@@ -8,21 +8,24 @@
       "version": "1.0.0",
       "path": "skills/cnsplots",
       "summary": "Publication-quality scientific figures in Python via the cnsplots package.",
-      "tags": [
-        "python",
-        "visualization",
-        "science",
-        "matplotlib",
-        "publication"
-      ],
-      "agents": [
-        "codex",
-        "claude-code"
-      ],
+      "tags": ["python", "visualization", "science", "matplotlib", "publication"],
+      "agents": ["codex", "claude-code"],
       "origin": "derivative-enhancement",
       "upstream": "https://github.com/faridrashidi/cnsplots",
       "upstream_license": "BSD-3-Clause",
       "verified_against": "cnsplots 0.6.0"
+    },
+    {
+      "name": "python-script-conventions",
+      "version": "1.4.0",
+      "path": "skills/python-script-conventions",
+      "summary": "Python 3.12+ coding standards: section layout, imports, type hints, logging, dataclass patterns, AI-friendly design.",
+      "tags": ["python", "conventions", "style-guide", "code-quality", "bioinformatics"],
+      "agents": ["codex", "claude-code"],
+      "origin": "original",
+      "author": "Yusheng Yang",
+      "license": "MIT",
+      "verified_against": "snapshot 2026-08-12"
     }
   ]
 }
