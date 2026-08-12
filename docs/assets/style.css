@@ -232,6 +232,45 @@ pre code{
 .rule-group strong{color:#101014}
 .rule-group p{color:#a4a4ae;font-size:.88rem;margin-bottom:0;margin-top:4px}
 
+/* Detail Page Content */
+.page-badges{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:16px;
+}
+.detail-section h2{margin-top:8px}
+.detail-section h3{margin-top:24px}
+.detail-section p,
+.detail-section ul,
+.detail-section ol{max-width:70ch}
+.detail-section ul,
+.detail-section ol{padding-left:22px;margin-bottom:16px}
+.detail-section li{margin-bottom:6px;line-height:1.7}
+.detail-section blockquote{
+  border-left:3px solid #0F7A52;
+  background:#E3F1EA;
+  padding:16px 20px;
+  border-radius:6px;
+  margin-bottom:20px;
+  max-width:70ch;
+}
+.detail-section blockquote p{margin-bottom:0}
+.detail-section .grid-2 p,
+.detail-section .split-col li,
+.detail-section .rule-group p{max-width:none}
+
+.detail-section a,
+.page-header a{
+  color:#0F7A52;
+  text-decoration:underline;
+  text-decoration-color:rgba(15,122,82,.35);
+  text-underline-offset:2px;
+  transition:text-decoration-color .15s;
+}
+.detail-section a:hover,
+.page-header a:hover{text-decoration-color:#0F7A52}
+
 /* Footer */
 footer{
   border-top:1px solid #e4e4ea;
@@ -336,9 +375,22 @@ footer span{color:#a4a4ae;font-size:.9rem}
   .split-col code{background:rgba(63,191,136,.12);color:#3FBF88}
   
   .rule-group li{border-color:#2a2a32}
+
+  .detail-section blockquote{
+    border-left-color:#3FBF88;
+    background:rgba(63,191,136,.10);
+  }
   .rule-group strong{color:#f4f4f6}
   .rule-group p{color:#9a9aa2}
   
+  .detail-section a,
+  .page-header a{
+    color:#3FBF88;
+    text-decoration-color:rgba(63,191,136,.35);
+  }
+  .detail-section a:hover,
+  .page-header a:hover{text-decoration-color:#3FBF88}
+
   footer{border-color:#2a2a32}
   footer span,.footer-links a{color:#9a9aa2}
   .footer-links a:hover{color:#3FBF88}
