@@ -7,10 +7,14 @@
 <link rel="stylesheet" href="../assets/style.css">
 </head>
 <body>
-<header><div class="wrap">
-<h1>cnsplots</h1>
-<p class="sub">Personal agent skills · <a href="https://github.com/HarnessYoung/personal-skills">GitHub</a></p>
-</div></header>
+<header class="top-nav">
+  <div class="container">
+    <a href="../index.html" class="logo">personal_skills</a>
+    <nav class="nav-links">
+      <a href="https://github.com/HarnessYoung/personal-skills">GitHub</a>
+    </nav>
+  </div>
+</header>
 <div class="wrap">
 <nav class="crumb"><a href="../index.html">personal_skills</a> / cnsplots</nav>
 
@@ -18,7 +22,7 @@
   <span class="badge">v1.0.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
-  <span class="badge ok">verified · cnsplots 0.6.0</span>
+  <span class="badge verified">verified · cnsplots 0.6.0</span>
 </div>
 
 <p>Generates, revises, and debugs publication-quality scientific figures in Python
@@ -31,20 +35,31 @@ survival/volcano/GSEA/ROC/heatmap plots, or Illustrator-editable vector output.<
 executable verification on top. Prefer upstream if you want to track it exactly.</p></blockquote>
 
 <h2>What it adds over upstream</h2>
-<table>
-<tr><th>Addition</th><th>Why it matters</th></tr>
-<tr><td><code>scripts/check_env.py</code></td><td>Reports interpreter, package version, backend, and whether <code>mutool</code> is installed, before any plotting is attempted.</td></tr>
-<tr><td><code>scripts/inspect_api.py</code></td><td>Prints the <em>installed</em> signature and docstring, so the agent stops guessing at API shapes that shift between releases.</td></tr>
-<tr><td><code>scripts/validate_output.py</code></td><td>Checks the artifact exists, is non-empty, has correct magic bytes, and counts SVG <code>&lt;text&gt;</code> elements to catch text flattened into paths.</td></tr>
-<tr><td><code>references/troubleshooting.md</code></td><td>13 documented failure modes with fixes.</td></tr>
-</table>
+<div class="grid-2">
+  <div class="grid-card">
+    <h3><code>check_env.py</code></h3>
+    <p>Reports interpreter, package version, backend, and whether mutool is installed before any plotting.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>inspect_api.py</code></h3>
+    <p>Prints the installed signature and docstring so the agent stops guessing at API shapes that shift between releases.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>validate_output.py</code></h3>
+    <p>Checks the artifact exists, is non-empty, has correct magic bytes, and counts SVG text elements to catch text flattened into paths.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>troubleshooting.md</code></h3>
+    <p>13 documented failure modes with fixes.</p>
+  </div>
+</div>
 
 <h2>Workflow the skill enforces</h2>
 <ul>
 <li>Probe the environment before writing code.</li>
 <li>Inspect the data, then confirm each function signature against the installed version.</li>
 <li>Build with <code>matplotlib.use("Agg")</code> for headless runs.</li>
-<li>Save, then <em>validate the artifact</em> — never claim success on unrun code.</li>
+<li>Save, then <em>validate the artifact</em>  -  never claim success on unrun code.</li>
 <li>Report the script, output path, and every scientific assumption made.</li>
 </ul>
 
@@ -82,13 +97,22 @@ rendered PNG was visually inspected. The documented <code>mutool</code>-missing
 fallback was confirmed to warn rather than fail.</p>
 
 <h2>Provenance</h2>
-<table>
-<tr><th>File</th><th>Origin</th></tr>
-<tr><td><code>SKILL.md</code></td><td>Restructured from upstream; workflow and rules rewritten</td></tr>
-<tr><td><code>references/plot-catalog.md</code></td><td>Derived from upstream, expanded</td></tr>
-<tr><td><code>references/troubleshooting.md</code></td><td>Original</td></tr>
-<tr><td><code>scripts/*.py</code></td><td>Original</td></tr>
-</table>
+<div class="split-2">
+  <div class="split-col">
+    <h3>Derived from upstream</h3>
+    <ul>
+      <li><code>SKILL.md</code></li>
+      <li><code>references/plot-catalog.md</code></li>
+    </ul>
+  </div>
+  <div class="split-col">
+    <h3>Original</h3>
+    <ul>
+      <li><code>references/troubleshooting.md</code></li>
+      <li><code>scripts/*.py</code></li>
+    </ul>
+  </div>
+</div>
 <p>Upstream: <a href="https://github.com/faridrashidi/cnsplots">faridrashidi/cnsplots</a>
 (<code>src/cnsplots/_agent_skill/cnsplots</code>) by Farid Rashidi, BSD-3-Clause.</p>
 
