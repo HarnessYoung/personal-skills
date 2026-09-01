@@ -65,9 +65,23 @@ ticks or y-label.
 **Panels in a visual grid have ragged left edges** — expected: multipanel derives
 each panel's reserve from its rendered y tick label width, so differing
 magnitudes shift the axes. Do not fix it with `pad_left` (it adds to the reserve)
-or `ax.set_position()` (reverted on save). Use a single host panel subdivided
+or `ax.set_position()` (discarded by the next relayout). Use a single host panel subdivided
 with `fig.add_gridspec()`; see
 [composition-patterns.md](composition-patterns.md).
+
+**`UserWarning: This figure includes Axes that are not compatible with
+tight_layout`** — `tight_layout()` was called on a `multipanel` figure. Panel axes
+are positioned explicitly and have no `SubplotSpec`, so `tight_layout` skips them
+entirely: measured panel bounds are identical before and after. It is a harmless
+no-op, but drop the call. `multipanel` already self-corrects through its
+`draw_event` handler, and `tight_layout` belongs to the `plt.subplots` path. See
+[composition-patterns.md](composition-patterns.md).
+
+**Panel geometry looks wrong when read right after plotting** — the decoration
+reserve is measured during a draw, so before the first draw it is `0.0` and the
+axes sits at its uncorrected position. Call `mp.fig.canvas.draw()` before reading
+`get_position()`. You do not need it before `cns.savefig()`, which draws
+internally.
 
 **`TypeError: list indices must be integers or slices, not tuple` when saving** —
 `inset_axes(..., loc=(x, y))` was given a tuple; `loc` must be an int or a known

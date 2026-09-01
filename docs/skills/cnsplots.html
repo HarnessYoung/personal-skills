@@ -27,7 +27,7 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.4.0</span>
+  <span class="badge">v1.5.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
   <span class="badge verified">verified · cnsplots 0.7.0</span>
@@ -79,6 +79,10 @@ executable verification on top. Prefer upstream if you want to track it exactly.
     <p>Full journal figures: negative offsets that reclaim reserved space, embedded raster images, composite plotter internal axes, and reworking generated annotations. Derived from reproducing the upstream showcase.</p>
   </div>
   <div class="grid-card">
+    <h3><code>color-strategy.md</code></h3>
+    <p>One palette per figure, keeping a variable on one color across panels, qualitative vs sequential vs diverging, and colour-vision plus greyscale legibility checks. Audits the showcase's eight-palette variety and explains why that is the wrong model to copy.</p>
+  </div>
+  <div class="grid-card">
     <h3><code>templates/</code></h3>
     <p>Four runnable layout templates  -  uniform grid, labeled heterogeneous figure, an aligned grid embedded in a labeled figure, and a dense showcase-style figure. The upstream showcase source is vendored alongside them, verbatim, as reference material.</p>
   </div>
@@ -123,6 +127,23 @@ Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
 nothing at all. The skill requires inspecting <code>ax.texts</code> and either
 naming that test in the caption or removing the annotation deliberately.</p>
 
+<h3><code>tight_layout</code> is not multipanel's counterpart</h3>
+<p><code>multipanel</code> self-corrects through a <code>draw_event</code> handler it
+connects automatically, because a panel's y-axis decoration width is only knowable
+after rendering. It keeps axes at exactly the requested pixel size and adjusts the
+figure around them; <code>tight_layout</code> does the opposite, resizing axes inside
+a fixed figure. On a multipanel figure <code>tight_layout()</code> is a measured
+no-op that only emits a warning, since panel axes carry no
+<code>SubplotSpec</code>. Reserve it for the <code>plt.subplots</code> path.</p>
+
+<h3>The showcase is a palette catalog, not a color scheme</h3>
+<p>Audited every colour decision in the vendored source: Figure 1 uses eight
+palettes across 18 panels, and four panels plotting iris <code>species</code> render
+<code>setosa</code> in four different colours. A real figure uses one palette and
+keeps a category on one colour, via a shared <code>hue_order</code>. The skill also
+ships a greyscale luma check, which finds real collisions in the default
+<code>Ecotyper1</code>: entries 4 and 6 differ by 0.005 luma.</p>
+
 <h3>Density comes from interlocking, not small margins</h3>
 <p>A packed figure stacks short panels into the vertical band a tall neighbour
 occupies, via <code>below=</code>. Both upstream showcase figures use three such
@@ -162,9 +183,10 @@ cns.savefig("multipanel.svg")</code></pre>
 
 <h2>Verification record</h2>
 <p>Tested 2026-09-01 on Python 3.12.14 with cnsplots 0.7.0 and matplotlib 3.10.9.
-All four scripts run with correct exit codes, all four templates execute and were
-rendered to PNG and visually inspected, and every published rcParams and settings
-value is measured from the installed package rather than transcribed. Panel
+All four scripts including <code>dump_style.py greyscale</code> run with correct exit
+codes, all four templates plus the two vendored upstream showcase scripts execute
+and were rendered to PNG and visually inspected, and every published rcParams and
+settings value is measured from the installed package rather than transcribed. Panel
 alignment, <code>below=</code> stacking, <code>GridSpec</code> durability across
 <code>savefig</code>, and the <code>inset_axes</code> alternative were each tested
 empirically. The upstream showcase Figure 1 and Figure 2 were reproduced end to

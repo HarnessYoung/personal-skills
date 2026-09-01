@@ -106,9 +106,14 @@ not interchangeable.
 whose y tick labels differ in width get different axes left edges. Measured:
 three `below=`-stacked panels at y magnitudes 1, 1e5, 10 landed at
 `x0 = 0.065 / 0.114 / 0.075`. `below=` groups panels vertically; it does not
-align them. Forcing it with `ax.set_position()` is reverted on save by
-multipanel's draw handler. When edges must line up, use the host-panel plus
-`GridSpec` pattern. Full reasoning and measurements:
+align them, and `ax.set_position()` does not survive the next relayout. When
+edges must line up, use the host-panel plus `GridSpec` pattern.
+
+`multipanel` self-corrects its layout through a `draw_event` handler that it
+connects automatically; do not call it yourself, and do not call
+`fig.tight_layout()` on a multipanel figure, where it is a no-op that only emits
+a warning. `tight_layout` belongs to the matplotlib grid path. Full reasoning and
+measurements:
 [references/composition-patterns.md](references/composition-patterns.md).
 
 ### 4. Build the figure

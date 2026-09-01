@@ -3,6 +3,50 @@
 All notable changes to this skill. Versioning is [SemVer](https://semver.org/)
 applied to the *skill*, independent of the `cnsplots` package version.
 
+## [1.5.0] — 2026-09-01
+
+Documents multipanel's self-correcting layout mechanism, and corrects two
+over-absolute claims from earlier versions.
+
+### Added
+- `references/composition-patterns.md` gains a section on the `draw_event` /
+  `_on_draw` relayout loop: why it exists (decoration widths are only knowable
+  after rendering), that `panel()` connects it automatically and it is
+  multipanel-only, that `_on_draw` is private and silently no-ops if called with
+  a fake event, and that `cns.savefig()` already triggers it so no manual call is
+  needed.
+- The same section explains why `tight_layout` is **not** the analogue: the two
+  optimize opposite things. `tight_layout` resizes axes inside a fixed figure,
+  while `_on_draw` keeps axes at exactly the requested pixel size (150x90
+  requested renders as 150.0x90.0) and adjusts the figure around them.
+- `references/troubleshooting.md` adds the `tight_layout` incompatibility
+  warning and the "geometry looks wrong before the first draw" case.
+
+### Fixed
+- **`fig.tight_layout()` on a multipanel figure was described as destroying
+  panel sizes. It does not — it is a no-op.** Panel axes are placed with explicit
+  coordinates and have no `SubplotSpec`, so `tight_layout` skips them and warns;
+  measured bounds are identical before and after, with the handler connected or
+  disconnected. The advice to omit it stands, but because it is useless rather
+  than harmful.
+- **`ax.set_position()` was described as unconditionally reverting on save.**
+  More precisely, it is discarded when the next draw remeasures the layout, and
+  whether a given draw does so depends on what changed: y tick `labelsize`
+  trips a remeasure (reserve 40.9 to 47.2), whereas replacing the y-axis label
+  *text* does not, since that label is rotated 90 degrees and its width follows
+  font size rather than string length. One configuration reverted to new values,
+  another to the original ragged ones. The override never survives; the specific
+  outcome is not predictable.
+- `below=` raggedness is now described as proportional to the y tick label width
+  difference rather than as a blanket defect: about 19 px at magnitudes 1 vs 1e5,
+  but roughly 4 px at 1 vs 1e6 vs 10 with a shared title. `below=` is fine where
+  panels share tick formatting; only guaranteed edge alignment requires the
+  host-panel plus `GridSpec` pattern.
+
+### Verified
+Against `cnsplots` 0.7.0 on Python 3.12.14 / matplotlib 3.10.9. See
+`skill.json` → `verification`.
+
 ## [1.4.0] — 2026-09-01
 
 Adds cross-panel color strategy guidance, driven by auditing the showcase's
