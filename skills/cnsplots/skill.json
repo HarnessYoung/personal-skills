@@ -1,8 +1,8 @@
 {
   "name": "cnsplots",
-  "version": "1.0.0",
-  "updated": "2026-08-12",
-  "summary": "Publication-quality scientific figures in Python via the cnsplots package.",
+  "version": "1.1.0",
+  "updated": "2026-09-01",
+  "summary": "Publication-quality scientific figures in Python via the cnsplots package, including the rcParams style contract and grid/multi-panel composition patterns.",
   "agents": [
     "codex",
     "claude-code"
@@ -16,12 +16,14 @@
     "upstream_license": "BSD-3-Clause",
     "upstream_license_url": "https://github.com/faridrashidi/cnsplots/blob/main/LICENSE.md",
     "upstream_commit_pushed_at": "2026-08-10T13:24:51Z",
-    "verified_against_package_version": "0.6.0"
+    "verified_against_package_version": "0.7.0"
   },
   "verification": {
-    "date": "2026-08-12",
-    "python": "3.12.13",
-    "method": "clean venv install of cnsplots 0.6.0; ran all bundled scripts; executed SKILL.md baseline + multipanel examples; validated SVG/PNG artifacts and visually inspected the PNG.",
-    "result": "pass"
+    "date": "2026-09-01",
+    "python": "3.12.14",
+    "matplotlib": "3.10.9",
+    "method": "mamba env with cnsplots 0.7.0; ran all four bundled scripts; ran all three templates and rendered each to PNG for visual inspection; measured the rcParams before/after diff and every settings value rather than transcribing them; empirically tested multipanel panel alignment, below= stacking, GridSpec-in-panel durability across savefig, and the inset_axes alternative.",
+    "result": "pass",
+    "notes": "mutool absent in this environment, so SVG export falls back to plain matplotlib SVG with a RuntimeWarning; unrelated to skill correctness."
   }
 }

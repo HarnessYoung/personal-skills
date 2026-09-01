@@ -27,16 +27,18 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.0.0</span>
+  <span class="badge">v1.1.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
-  <span class="badge verified">verified · cnsplots 0.6.0</span>
+  <span class="badge verified">verified · cnsplots 0.7.0</span>
 </div>
 
 <p>Generates, revises, and debugs publication-quality scientific figures in Python
 using the <a href="https://github.com/faridrashidi/cnsplots">cnsplots</a> package.
-Triggers on requests for journal-style plots, multi-panel figures,
-survival/volcano/GSEA/ROC/heatmap plots, or Illustrator-editable vector output.</p>
+Triggers on requests for journal-style plots, multi-panel or grid figures,
+survival/volcano/GSEA/ROC/heatmap plots, or Illustrator-editable vector output.
+Also covers applying the cnsplots style to plain matplotlib, seaborn, or scanpy
+axes.</p>
 
 <blockquote><p><strong>Upstream ships its own skill.</strong> Running
 <code>cnsplots skill install</code> installs the official version. This one adds
@@ -57,8 +59,24 @@ executable verification on top. Prefer upstream if you want to track it exactly.
     <p>Checks the artifact exists, is non-empty, has correct magic bytes, and counts SVG text elements to catch text flattened into paths.</p>
   </div>
   <div class="grid-card">
+    <h3><code>dump_style.py</code></h3>
+    <p>Measures the rcParams diff, every settings value, the accepted palette names, and the color constants from the installed package, so no documented number is transcribed by hand.</p>
+  </div>
+  <div class="grid-card">
     <h3><code>troubleshooting.md</code></h3>
-    <p>13 documented failure modes with fixes.</p>
+    <p>25 documented failure modes with fixes, each reproduced against the installed version.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>rcparams.md</code> + <code>settings-catalog.md</code></h3>
+    <p>The full style contract: which rcParams the package sets, and the rule for custom artists  -  inherit the value, or read it from config, never restate it.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>composition-patterns.md</code></h3>
+    <p>When to use a matplotlib grid, <code>multipanel</code>, or a <code>GridSpec</code> inside a host panel, with the measurements behind each rule.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>templates/</code></h3>
+    <p>Three runnable layout templates  -  uniform grid, labeled heterogeneous figure, and an aligned grid embedded in a labeled figure.</p>
   </div>
 </div>
 
@@ -71,16 +89,42 @@ executable verification on top. Prefer upstream if you want to track it exactly.
 <li>Report the script, output path, and every scientific assumption made.</li>
 </ul>
 
-<h2>Two traps it guards against</h2>
+<h2>Traps it guards against</h2>
 <h3>Pixels, not inches</h3>
-<p><code>cns.figure(180, 150)</code> is 180×150 <strong>pixels</strong>. Writing
-<code>cns.figure(6, 4)</code> out of matplotlib habit yields a 6×4 pixel canvas.</p>
+<p><code>cns.figure(180, 150)</code> is 180×150 <strong>pixels at 72 per inch</strong>,
+rendered at 144 dpi, so the raster is 360×300. Writing <code>cns.figure(6, 4)</code>
+out of matplotlib habit yields a 6×4 pixel canvas.</p>
 
 <h3>Return types are not uniform</h3>
 <p><code>heatmapplot</code> and <code>dotplot</code> return backend-native plotter
 objects, <code>vennplot</code> returns a matplotlib-venn object, and
 <code>upsetplot</code> returns panel axes. None are a plain <code>Axes</code>, so a
-bare <code>.set(...)</code> raises <code>AttributeError</code>.</p>
+bare <code>.set(...)</code> raises <code>AttributeError</code>. Meanwhile
+<code>figure</code>, <code>setup_matplotlib</code>, <code>setup_ax</code>, and
+<code>take_legend_out</code> all return <code>None</code>.</p>
+
+<h3>multipanel does not align panel edges</h3>
+<p>Each panel's outer width includes a reserve measured from its
+<em>rendered</em> y-axis decorations, so panels whose tick labels differ in width
+get different axes left edges. Three <code>below=</code>-stacked panels at y
+magnitudes 1, 1e5, and 10 landed at x0 = 0.065 / 0.114 / 0.075. Neither
+<code>pad_left</code> nor <code>ax.set_position()</code> fixes it; the latter is
+reverted on save by multipanel's own draw handler. For an aligned block, one host
+panel is subdivided with <code>GridSpec</code> instead.</p>
+
+<h3>Silent statistical annotations</h3>
+<p><code>kdeplot</code> with a two-level <code>hue</code> runs a two-sample
+Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
+<code>add_mode=False</code> does not suppress it, and three or more levels produce
+nothing at all. The skill requires inspecting <code>ax.texts</code> and either
+naming that test in the caption or removing the annotation deliberately.</p>
+
+<h3>A zero exit code is not a passing figure</h3>
+<p>Every layout defect found while building this version  -  a silently wrapped
+multipanel row, tick labels crashing into the panel below, an unrequested
+p-value  -  exited zero and wrote a valid file. The skill requires rendering a PNG
+and looking at it, with <code>savefig_transparent</code> turned off so the preview
+is not mistaken for a blank image.</p>
 
 <h2>Verified example</h2>
 <pre><code>import matplotlib
@@ -98,11 +142,14 @@ cns.scatterplot(data=df, x="total_bill", y="tip", ax=ax_b)
 cns.savefig("multipanel.svg")</code></pre>
 
 <h2>Verification record</h2>
-<p>Tested 2026-08-12 in a clean venv on Python 3.12.13 with cnsplots 0.6.0: all three
-scripts run with correct exit codes, both <code>SKILL.md</code> examples execute,
-artifacts pass validation (11 and 28 <code>&lt;text&gt;</code> elements), and the
-rendered PNG was visually inspected. The documented <code>mutool</code>-missing
-fallback was confirmed to warn rather than fail.</p>
+<p>Tested 2026-09-01 on Python 3.12.14 with cnsplots 0.7.0 and matplotlib 3.10.9.
+All four scripts run with correct exit codes, all three templates execute and were
+rendered to PNG and visually inspected, and every published rcParams and settings
+value is measured from the installed package rather than transcribed. Panel
+alignment, <code>below=</code> stacking, <code>GridSpec</code> durability across
+<code>savefig</code>, and the <code>inset_axes</code> alternative were each tested
+empirically. The documented <code>mutool</code>-missing fallback was confirmed to
+warn rather than fail.</p>
 
 <h2>Provenance</h2>
 <div class="split-2">
@@ -117,7 +164,12 @@ fallback was confirmed to warn rather than fail.</p>
     <h3>Original</h3>
     <ul>
       <li><code>references/troubleshooting.md</code></li>
+      <li><code>references/rcparams.md</code></li>
+      <li><code>references/settings-catalog.md</code></li>
+      <li><code>references/composition-patterns.md</code></li>
+      <li><code>references/style-bridge.md</code></li>
       <li><code>scripts/*.py</code></li>
+      <li><code>templates/*.py</code></li>
     </ul>
   </div>
 </div>

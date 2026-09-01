@@ -64,21 +64,59 @@ signature for the exact expected columns.
 
 ## Composition, style, export
 
+Figure and layout:
+
 - `figure(width, height, color_cycle=..., color_map=...)`: pixel-sized canvas.
-- `multipanel(max_width=...)` + `panel(label, width, height)`: labeled panels.
-- `add_panel_label`, `take_legend_out`, `apply_unicode_font`.
-- `savefig(path)`: saves and creates parent directories.
-- `settings.context(...)`: scoped style overrides.
-- `palettes`, `get_hexcolors_from_apalette`, and constants `cns.RED`,
-  `cns.BLUE`, `cns.GREEN`, `cns.ORANGE`, `cns.PURPLE`, `cns.GRAY`, etc.
+  Applies the full style and returns `None`.
+- `multipanel(max_width=..., title=..., loc=..., title_fontweight=...)` with
+  `.panel(...)`, `.newline()`, `.get_axes(label)`, `.fig`, `.axes`.
+- `add_panel_label(name, pad_left, pad_top)`: labels the **current** axes; there
+  is no `ax` parameter, so call `plt.sca(ax)` first.
+- `savefig(path)` (alias `save`): saves and creates parent directories.
+
+Style:
+
 - `setup_matplotlib`, `setup_ax`, `setup_scanpy`, `setup_ggplot`: apply cnsplots
-  styling to figures built with other libraries.
+  styling to figures built with other libraries. All return `None`.
+- `settings.context(...)`: scoped style overrides. `settings.reset()`: restore
+  defaults.
+- `take_legend_out(title=None, *, ax=None)`: `ax` is keyword-only.
+- `apply_unicode_font()`: CJK and symbol coverage.
 
-Palettes: qualitative `Ecotyper1`-`Ecotyper6`, `Cell`, `Nature`, `Science`,
-`Set1`-`Set3`, `Tableau`, `Bold`; sequential `parula`, `gnuplot`; diverging
-`BlueRed`, `BuRd_custom`, `OrBu_custom`.
+Color:
 
-### Multi-panel skeleton
+- `palettes(name_or_list)`: returns RGB float tuples for **qualitative** names
+  only; sequential names such as `gnuplot` raise `RuntimeError`.
+- `get_hexcolors_from_apalette(indices)`: specific colors from the active palette.
+- Constants: `RED`, `BLUE`, `GREEN`, `ORANGE`, `PURPLE`, `YELLOW`, `PINK`, `GRAY`,
+  `BROWN`, `VIOLET`, `CHOCOLATE`.
+
+Models and data:
+
+- `CoxModel`, `LogisticModel`: fitted models feeding `forestplot` and survival
+  plots.
+- `prerank`: GSEA prerank input for `gseaplot`.
+- `datasets.load_dataset(name)` for built-in demo frames;
+  `datasets.get_showcase_data`; `datasets.gallery` is a submodule.
+- `placeholderplot(description, *, ax=None)`: draw a captioned placeholder in a
+  panel whose real content does not exist yet.
+- `utils`, `validation`, `methods`: helper namespaces.
+
+Qualitative palette names accepted by `palettes()`, probed against 0.7.0:
+`Ecotyper1`-`Ecotyper6`, `Cell`, `Nature`, `Science`, `Tableau`, `Bold`,
+`ECharts`, `Set1`-`Set3`, `Pastel1`, `Pastel2`, `Paired`, `Dark2`, `Accent`.
+Sequential and diverging maps (`gnuplot`, `parula`, `BuRd_custom`, ...) go
+through `color_map=`, not `palettes()`. Re-probe with
+`python3 scripts/dump_style.py palettes`.
+
+Full style contract: [rcparams.md](rcparams.md) and
+[settings-catalog.md](settings-catalog.md).
+
+### Layout skeletons
+
+Pick the engine deliberately; see
+[composition-patterns.md](composition-patterns.md) for why these are not
+interchangeable, and start from `templates/`.
 
 ```python
 import matplotlib
@@ -97,3 +135,6 @@ cns.scatterplot(data=continuous, x="x", y="y", ax=ax_b)
 
 cns.savefig("outputs/multipanel.svg")
 ```
+
+For a uniform repeated grid use `cns.figure()` plus `plt.gcf().subplots(...)`
+instead; `multipanel` does not align panel edges.
