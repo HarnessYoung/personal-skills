@@ -226,7 +226,21 @@ produce a regular grid. `GridSpec` is the correct tool.
 ## Returned objects
 
 Most plot functions return the target `Axes`. `heatmapplot` and `dotplot` return
-backend plotter objects, `vennplot` a matplotlib-venn object, and `upsetplot`
-panel axes. In grid loops, do not assume the return value is an `Axes`; pass
-`ax=` and keep using your own reference. These composite plotters also manage
-their own internal axes, so they cooperate poorly with a `GridSpec` cell.
+backend plotter objects, `vennplot` a matplotlib-venn object, and `upsetplot` a
+`dict[str, Axes | None]`. In grid loops, do not assume the return value is an
+`Axes`; pass `ax=` and keep using your own reference. These composite plotters
+also manage their own internal axes, so they cooperate poorly with a `GridSpec`
+cell.
+
+`dotplot` does accept `ax=host` and stays inside the panel. `upsetplot` accepts
+`ax=` but **overflows** it, so it needs a rescale step. Styling their internal
+axes and embedding a detached plotter are covered in
+[dense-figures.md](dense-figures.md).
+
+## Checking which panels share a row
+
+Do not infer rows from `y0` or `y1`. Panels of differing heights share a row
+while agreeing on neither edge, so both give false wraps. Group by vertical
+overlap instead; `templates/dense_figure.py` has a `report_bands()` helper that
+reproduces multipanel's internal grouping using public API only. See
+[dense-figures.md](dense-figures.md).

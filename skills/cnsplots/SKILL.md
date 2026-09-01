@@ -30,6 +30,8 @@ block. Start from one instead of writing a layout from scratch:
 - `$SKILL_DIR/templates/mpl_grid_repeat.py` — uniform grid, one plot type
 - `$SKILL_DIR/templates/multipanel_heterogeneous.py` — labeled A/B/C figure
 - `$SKILL_DIR/templates/mixed_grid_in_panel.py` — aligned grid inside a labeled figure
+- `$SKILL_DIR/templates/dense_figure.py` — showcase-style dense figure: per-panel
+  palettes, negative offsets, embedded image, composite plotters, embedded upsetplot
 
 ## Hard rules
 
@@ -91,6 +93,7 @@ not interchangeable.
 | Same plot repeated, uniform cells | `cns.figure()` + `fig.subplots()` | `templates/mpl_grid_repeat.py` |
 | Different sizes/types, A/B/C labels | `cns.multipanel()` + `mp.panel()` | `templates/multipanel_heterogeneous.py` |
 | Heterogeneous **and** a repeated block | one host `mp.panel()` + `fig.add_gridspec()` | `templates/mixed_grid_in_panel.py` |
+| Full journal figure: many panels, images, composite plotters | `cns.multipanel()` + hand-tuned offsets | `templates/dense_figure.py` |
 
 `multipanel` sizes each panel from its *rendered* axis decorations, so panels
 whose y tick labels differ in width get different axes left edges. Measured:
@@ -192,6 +195,9 @@ Load these on demand; do not read them all up front.
 - [references/plot-catalog.md](references/plot-catalog.md) — pick a plot function
 - [references/composition-patterns.md](references/composition-patterns.md) — grid
   vs multipanel, panel alignment, mixed layouts
+- [references/dense-figures.md](references/dense-figures.md) — full journal
+  figures: negative offsets, embedded images, composite plotter internals,
+  reworking generated annotations
 - [references/style-bridge.md](references/style-bridge.md) — matplotlib, seaborn,
   scanpy, and plotnine integration
 - [references/rcparams.md](references/rcparams.md) — the rcParams contract; read

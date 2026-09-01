@@ -30,9 +30,15 @@ SECTIONS = ("rcparams", "settings", "palettes", "colors")
 # installed cns.palettes() rejects are reported as unavailable rather than
 # assumed present.
 PALETTE_CANDIDATES = (
+    # Qualitative
     "Ecotyper1", "Ecotyper2", "Ecotyper3", "Ecotyper4", "Ecotyper5", "Ecotyper6",
-    "Cell", "Nature", "Science", "Tableau", "Bold", "ECharts", "Vivid", "Prism",
+    "Cell", "Nature", "Science", "NEJM", "Tableau", "Bold", "ECharts",
     "Set1", "Set2", "Set3", "Pastel1", "Pastel2", "Paired", "Dark2", "Accent",
+    # Sequential / diverging that palettes() also accepts
+    "BlueRed", "BuRd_custom", "OrBu_custom", "WhYlOrRd_custom", "YlGnBu_custom",
+    "parula",
+    # Probed to confirm they are rejected: plain matplotlib colormap names
+    "gnuplot", "viridis", "Blues",
 )
 
 COLOR_CONSTANTS = (

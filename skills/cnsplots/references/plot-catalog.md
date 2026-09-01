@@ -33,6 +33,10 @@ Select the narrowest fitting function, then verify its installed signature with
 - `confusionplot`: predicted vs observed classes.
 
 `heatmapplot` and `dotplot` return backend-native plotter objects, not `Axes`.
+Style them through their internal axes (`ax`, `ax_heatmap`, `hm_ax`, `cbar_ax`,
+`dot_legend`, `ax_row_dendrogram`, `ax_col_dendrogram`, `ax_*_annotation`); note
+`hm_ax` and `ax_heatmap` are different objects. See
+[dense-figures.md](dense-figures.md).
 
 ## Proportions, sets, flows
 
@@ -102,12 +106,14 @@ Models and data:
   panel whose real content does not exist yet.
 - `utils`, `validation`, `methods`: helper namespaces.
 
-Qualitative palette names accepted by `palettes()`, probed against 0.7.0:
-`Ecotyper1`-`Ecotyper6`, `Cell`, `Nature`, `Science`, `Tableau`, `Bold`,
+Names accepted by `palettes()`, probed against 0.7.0. Qualitative:
+`Ecotyper1`-`Ecotyper6`, `Cell`, `Nature`, `Science`, `NEJM`, `Tableau`, `Bold`,
 `ECharts`, `Set1`-`Set3`, `Pastel1`, `Pastel2`, `Paired`, `Dark2`, `Accent`.
-Sequential and diverging maps (`gnuplot`, `parula`, `BuRd_custom`, ...) go
-through `color_map=`, not `palettes()`. Re-probe with
-`python3 scripts/dump_style.py palettes`.
+Also accepted, and usable as a `color_cycle`: `BlueRed`, `BuRd_custom`,
+`OrBu_custom`, `WhYlOrRd_custom`, `YlGnBu_custom`, `parula`. Plain matplotlib
+colormap names are **rejected**: `gnuplot`, `viridis`, and `Blues` all raise
+`RuntimeError`, so pass those through `color_map=` or `cmap=` instead. Re-probe
+with `python3 scripts/dump_style.py palettes`.
 
 Full style contract: [rcparams.md](rcparams.md) and
 [settings-catalog.md](settings-catalog.md).

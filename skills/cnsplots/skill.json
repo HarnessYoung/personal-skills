@@ -1,8 +1,8 @@
 {
   "name": "cnsplots",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "updated": "2026-09-01",
-  "summary": "Publication-quality scientific figures in Python via the cnsplots package, including the rcParams style contract and grid/multi-panel composition patterns.",
+  "summary": "Publication-quality scientific figures in Python via the cnsplots package, including the rcParams style contract, grid/multi-panel composition patterns, and dense journal-figure techniques.",
   "agents": [
     "codex",
     "claude-code"
@@ -22,8 +22,8 @@
     "date": "2026-09-01",
     "python": "3.12.14",
     "matplotlib": "3.10.9",
-    "method": "mamba env with cnsplots 0.7.0; ran all four bundled scripts; ran all three templates and rendered each to PNG for visual inspection; measured the rcParams before/after diff and every settings value rather than transcribing them; empirically tested multipanel panel alignment, below= stacking, GridSpec-in-panel durability across savefig, and the inset_axes alternative.",
+    "method": "mamba env with cnsplots 0.7.0; ran all four bundled scripts; ran all four templates and rendered each to PNG for visual inspection; measured the rcParams before/after diff and every settings value rather than transcribing them; empirically tested multipanel panel alignment, below= stacking, GridSpec-in-panel durability across savefig, and the inset_axes alternative. Also reproduced the upstream showcase Figure 1 and Figure 2 end to end and inspected both renders, then verified the showcase-only techniques independently: negative pad_left offsets, composite plotter internal axes, upsetplot ax= overflow, whether cns.utils._capture_detached_axes_layout is load-bearing, and the full set of names cns.palettes() accepts.",
     "result": "pass",
-    "notes": "mutool absent in this environment, so SVG export falls back to plain matplotlib SVG with a RuntimeWarning; unrelated to skill correctness."
+    "notes": "mutool absent in this environment, so SVG export falls back to plain matplotlib SVG with a RuntimeWarning; unrelated to skill correctness. Reproducing the upstream showcase surfaced overlapping heatmap legends in its Figure 1 panel R at this font/size, which is why the legend_* nudges are documented as size-specific and requiring re-tuning."
   }
 }

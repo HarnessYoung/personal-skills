@@ -25,8 +25,15 @@ measured rcParams/settings style contract, and layout composition guidance.
 | `references/settings-catalog.md` | Original; generated from the installed package |
 | `references/composition-patterns.md` | Original; based on measurements of `_multipanels.py` behavior |
 | `references/style-bridge.md` | Original |
+| `references/dense-figures.md` | Original prose; techniques derived from the upstream showcase example |
 | `scripts/*.py` | Original |
-| `templates/*.py` | Original |
+| `templates/*.py` | Original code; `dense_figure.py` follows the structure of the upstream showcase example |
+
+The upstream showcase example
+(<https://cnsplots.farid.one/latest/examples/showcase.html>) was run and studied
+while writing `references/dense-figures.md` and `templates/dense_figure.py`. The
+prose and code here are written from scratch, but the techniques they teach come
+from that example and are credited to it under the same BSD-3-Clause terms.
 
 ## License
 

@@ -27,7 +27,7 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.1.0</span>
+  <span class="badge">v1.2.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
   <span class="badge verified">verified · cnsplots 0.7.0</span>
@@ -75,8 +75,12 @@ executable verification on top. Prefer upstream if you want to track it exactly.
     <p>When to use a matplotlib grid, <code>multipanel</code>, or a <code>GridSpec</code> inside a host panel, with the measurements behind each rule.</p>
   </div>
   <div class="grid-card">
+    <h3><code>dense-figures.md</code></h3>
+    <p>Full journal figures: negative offsets that reclaim reserved space, embedded raster images, composite plotter internal axes, and reworking generated annotations. Derived from reproducing the upstream showcase.</p>
+  </div>
+  <div class="grid-card">
     <h3><code>templates/</code></h3>
-    <p>Three runnable layout templates  -  uniform grid, labeled heterogeneous figure, and an aligned grid embedded in a labeled figure.</p>
+    <p>Four runnable layout templates  -  uniform grid, labeled heterogeneous figure, an aligned grid embedded in a labeled figure, and a dense showcase-style figure.</p>
   </div>
 </div>
 
@@ -119,12 +123,19 @@ Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
 nothing at all. The skill requires inspecting <code>ax.texts</code> and either
 naming that test in the caption or removing the annotation deliberately.</p>
 
+<h3>Row membership is not readable from either edge</h3>
+<p>Panels of differing heights share a row while agreeing on neither
+<code>y0</code> nor <code>y1</code>, so both give false wraps. Grouping by vertical
+overlap reproduces multipanel's internal row grouping using public API only; the
+dense template ships that check and prints the band structure on save.</p>
+
 <h3>A zero exit code is not a passing figure</h3>
-<p>Every layout defect found while building this version  -  a silently wrapped
+<p>Every layout defect found while building these versions  -  a silently wrapped
 multipanel row, tick labels crashing into the panel below, an unrequested
-p-value  -  exited zero and wrote a valid file. The skill requires rendering a PNG
-and looking at it, with <code>savefig_transparent</code> turned off so the preview
-is not mistaken for a blank image.</p>
+p-value, overlapping heatmap legends in the reproduced showcase  -  exited zero and
+wrote a valid file. The skill requires rendering a PNG and looking at it, with
+<code>savefig_transparent</code> turned off so the preview is not mistaken for a
+blank image.</p>
 
 <h2>Verified example</h2>
 <pre><code>import matplotlib
@@ -143,13 +154,17 @@ cns.savefig("multipanel.svg")</code></pre>
 
 <h2>Verification record</h2>
 <p>Tested 2026-09-01 on Python 3.12.14 with cnsplots 0.7.0 and matplotlib 3.10.9.
-All four scripts run with correct exit codes, all three templates execute and were
+All four scripts run with correct exit codes, all four templates execute and were
 rendered to PNG and visually inspected, and every published rcParams and settings
 value is measured from the installed package rather than transcribed. Panel
 alignment, <code>below=</code> stacking, <code>GridSpec</code> durability across
 <code>savefig</code>, and the <code>inset_axes</code> alternative were each tested
-empirically. The documented <code>mutool</code>-missing fallback was confirmed to
-warn rather than fail.</p>
+empirically. The upstream showcase Figure 1 and Figure 2 were reproduced end to
+end and inspected, then each showcase-only technique was verified independently
+rather than copied  -  including whether the example's private
+<code>_capture_detached_axes_layout</code> call is load-bearing, which it is not.
+The documented <code>mutool</code>-missing fallback was confirmed to warn rather
+than fail.</p>
 
 <h2>Provenance</h2>
 <div class="split-2">
@@ -168,6 +183,7 @@ warn rather than fail.</p>
       <li><code>references/settings-catalog.md</code></li>
       <li><code>references/composition-patterns.md</code></li>
       <li><code>references/style-bridge.md</code></li>
+      <li><code>references/dense-figures.md</code></li>
       <li><code>scripts/*.py</code></li>
       <li><code>templates/*.py</code></li>
     </ul>

@@ -35,6 +35,33 @@ passed. With `panel_margin_right` defaulting to `10`, panels of 150 and 300 px
 needed `max_width=520`, not 500. Nothing warns. Compare panel `y0` values to see
 which panels actually share a row.
 
+**Row check reports panels on separate rows that clearly share one** — you
+grouped by `y0` or `y1`. Panels of differing heights share a row while agreeing on
+neither edge. Group by vertical overlap; see `report_bands()` in
+`templates/dense_figure.py`.
+
+**An `upsetplot` spills outside its panel** — it accepts `ax=` but does not
+confine itself to it. Let it lay out with `fig=mp.fig`, then rescale its returned
+axes into the host rectangle after all panels exist. Recipe in
+[dense-figures.md](dense-figures.md). Its dict has a `totals` key that is `None`
+when `totals_plot_elements=0`, so filter `None` before iterating.
+
+**`heatmapplot` or `dotplot` legends overlap each other or the next panel** —
+`legend_hpad`, `legend_vpad`, `legend_hgap`, `legend_vgap`, `legend_width` are
+absolute nudges tuned for one figure size and font. They do not rescale. Re-tune
+them after any geometry change and confirm visually; a value copied from another
+figure will usually collide.
+
+**Composite plotter title appears twice or in the wrong place** — `dotplot` and
+`heatmapplot` expose several internal axes, and `hm_ax` is not the same object as
+`ax_heatmap` even when they share a rectangle. Blank the built-in title with
+`dp.ax_heatmap.set_title("")` and set your own on `dp.hm_ax`.
+
+**Image panel has thick white margins** — the panel aspect ratio does not match
+the image, so `imshow` letterboxes it. Size the panel to the image, and reclaim
+the unused decoration space with a negative `pad_left` since an image axes has no
+ticks or y-label.
+
 **Panels in a visual grid have ragged left edges** — expected: multipanel derives
 each panel's reserve from its rendered y tick label width, so differing
 magnitudes shift the axes. Do not fix it with `pad_left` (it adds to the reserve)

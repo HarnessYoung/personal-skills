@@ -3,6 +3,48 @@
 All notable changes to this skill. Versioning is [SemVer](https://semver.org/)
 applied to the *skill*, independent of the `cnsplots` package version.
 
+## [1.2.0] — 2026-09-01
+
+Adds dense journal-figure technique, derived from reproducing the upstream
+showcase (<https://cnsplots.farid.one/latest/examples/showcase.html>) end to end
+and verifying each technique independently.
+
+### Added
+- `references/dense-figures.md` — building a 15-to-20-panel figure: per-panel
+  palettes, negative `pad_*` / `margin_*` to reclaim reserved space, embedded
+  raster images, composite plotter internal axes, embedding a detached
+  `upsetplot`, and reworking generated annotations and legends.
+- `templates/dense_figure.py` — runnable dense figure on the packaged showcase
+  data, with a `report_bands()` helper that prints the row structure on save so a
+  silent wrap is visible without opening the file.
+
+### Changed
+- `scripts/dump_style.py` probes the full palette set. `cns.palettes()` accepts
+  27 names, including `NEJM`, `BlueRed`, `parula`, and the `*_custom` diverging
+  maps, and rejects plain matplotlib colormap names (`gnuplot`, `viridis`,
+  `Blues`). The previous list understated this.
+- `references/plot-catalog.md` records that wider palette set and the composite
+  plotter axes attributes.
+- `references/composition-patterns.md` and `references/troubleshooting.md` gain
+  the composite plotter findings: `dotplot` honors `ax=` and stays inside its
+  panel, `upsetplot` accepts `ax=` but overflows it, `hm_ax` and `ax_heatmap` are
+  different objects, and the `legend_*` nudges are absolute and do not rescale.
+- `SKILL.md` adds a fifth row to the layout table for full journal figures.
+
+### Notes
+Two findings worth recording. Row membership cannot be read from `y0` or `y1`:
+panels of differing heights share a row while agreeing on neither edge, so both
+report false wraps. Grouping by vertical overlap reproduces multipanel's internal
+grouping and is what `report_bands()` does. And the showcase's
+`cns.utils._capture_detached_axes_layout` call is private and not needed: the
+public rescale works when performed after every `mp.panel()` call, and the
+private tracking is inexact anyway (adding a later panel moved the host `+0.334`
+in figure coordinates while the embedded axes moved `+0.200`).
+
+### Verified
+Against `cnsplots` 0.7.0 on Python 3.12.14 / matplotlib 3.10.9. See
+`skill.json` → `verification`.
+
 ## [1.1.0] — 2026-09-01
 
 Adds the style contract and layout composition guidance; re-verified against
