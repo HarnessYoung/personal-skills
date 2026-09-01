@@ -1,6 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# =============================================================================
+# CHECKLIST BEFORE FINALIZING:
+# - [ ] Replace module docstring with actual description (lines 14-42)
+# - [ ] Update REQUIRED_COLUMNS to match your input (line 64)
+# - [ ] Implement core logic in filter_dataframe() (lines 87-113)
+# - [ ] Update parse_args() with your actual CLI parameters (lines 117-146)
+# - [ ] Verify all imports are used (no unused imports)
+# - [ ] Run: python3 $SKILL_DIR/scripts/verify_conventions.py this_file.py
+# =============================================================================
+
 # (Optional) PEP 723 inline script metadata for self-contained execution with `uv`.
 # Remove or adjust if managing dependencies via a traditional virtual environment.
 # /// script
@@ -12,22 +22,23 @@
 # ///
 
 """
-Script Template for S. pombe Phenotype Processing
+Script Template for Data Processing                    # REPLACE THIS: One-line title
 ===================================================
 
 A template script that demonstrates the standard layout for AI-generated
 Python scripts in this workspace. Replace this description with the
 script's actual business logic, core algorithm, and context.
+                                                        # REPLACE THIS: Full description
 
 Input
 -----
 - Input file path (CSV, TSV, or XLSX) with required columns.
-- See ``--input`` / ``--help`` for exact format.
+- See ``--input`` / ``--help`` for exact format.      # REPLACE THIS: Actual input spec
 
 Output
 ------
 - Filtered results saved to the configured output directory.
-- File format depends on the script's core logic.
+- File format depends on the script's core logic.     # REPLACE THIS: Actual output spec
 
 Usage
 -----
@@ -35,10 +46,10 @@ Usage
         --input data/raw/file.csv \
         --output-dir outputs/ \
         --keywords growth morphology \
-        --verbose
+        --verbose                                      # REPLACE THIS: Real usage examples
 
-Author: Yusheng Yang (guidance) + Agent (implementation)
-Date:   YYYY-MM-DD
+Author: Yusheng Yang (guidance) + Agent (implementation)  # REPLACE THIS: Actual author
+Date:   YYYY-MM-DD                                     # REPLACE THIS: Today's date
 Version: 1.0.0
 """
 
@@ -61,7 +72,7 @@ from loguru import logger
 # ==================== §3 CONSTANTS ====================
 # Module-level constants: filenames, magic numbers, defaults, etc.
 DEFAULT_OUTPUT_DIR = Path("outputs")
-REQUIRED_COLUMNS = ["gene_id", "description", "category"]
+REQUIRED_COLUMNS = ["gene_id", "description", "category"]  # REPLACE THIS: Your actual required columns
 
 # ==================== §4 CONFIG ====================
 
@@ -72,6 +83,9 @@ class Config:
     output_dir: Path
     keywords: list[str]
     verbose: bool = False
+    # kw_only=True → forces keyword arguments (prevents positional confusion)
+    # slots=True → reduces memory footprint (no __dict__ per instance)
+    # frozen=True → makes instances immutable (config shouldn't change after creation)
 
 # ==================== §5 LOGGING ====================
 
@@ -100,7 +114,7 @@ def filter_dataframe(df: pd.DataFrame, config: Config) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
     
-    # Main filtering logic
+    # REPLACE THIS: Main filtering logic - implement your actual business logic here
     if not config.keywords:
         logger.info("No keywords provided; returning all rows.")
         return df
@@ -112,12 +126,12 @@ def filter_dataframe(df: pd.DataFrame, config: Config) -> pd.DataFrame:
     logger.info(f"Filtered {len(df):,} rows down to {len(result):,} matching keywords: {config.keywords}")
     return result
 
-# ==================== §7 MAIN ENTRY POINT ====================
+# ==================== §7 MAIN EXECUTION ====================
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments."""
     parser = argparse.ArgumentParser(
-        description="Process S. pombe phenotype data and filter by keywords.",
+        description="Process data and filter by keywords.",  # REPLACE THIS: Your actual description
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
@@ -136,7 +150,7 @@ def parse_args() -> argparse.Namespace:
         "--keywords",
         nargs="+",
         default=[],
-        help="Keywords to filter phenotype descriptions (e.g., 'growth', 'morphology')"
+        help="Keywords to filter descriptions (e.g., 'growth', 'morphology')"  # REPLACE THIS: Your params
     )
     parser.add_argument(
         "--verbose",

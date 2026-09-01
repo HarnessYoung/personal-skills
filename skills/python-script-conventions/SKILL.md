@@ -16,17 +16,55 @@ metadata:
 
 This skill defines the coding standards and design patterns to follow when generating or modifying Python scripts in this workspace. It codifies a consistent layout, modern Python 3.12+ idioms, and AI-agent-friendly design so that every script reads like it belongs to the same codebase.
 
-The companion file `templates/agent_script_template.py` provides a concrete reference implementation of these principles. **Always open that template as a starting point when writing a new script from scratch.**
+**Domain focus:** Developed for bioinformatics data-processing workflows, but the patterns (section layout, type system, logging, dataclass config) apply to any data-science or analysis script that reads files, processes data, and writes outputs.
+
+The companion file `$SKILL_DIR/templates/agent_script_template.py` provides a concrete reference implementation of these principles. **Always open that template as a starting point when writing a new script from scratch.**
 
 Apply these rules thoughtfully — if a rule would make a particular script worse, adapt accordingly.
 
 ---
 
+## Hard Rules
+
+- **All imports in the top-level IMPORTS section** — never in function bodies or class definitions
+- **Use `loguru` exclusively** — no `print()` or stdlib `logging`
+- **Type hints on every function signature** — both parameters and return value
+- **Single-line docstrings** — type hints carry the type information
+- **`pathlib.Path` everywhere** — no `os.path.join()` or `os.path.exists()`
+- **`@dataclass(kw_only=True, slots=True, frozen=True)`** for configuration objects
+- **`if __name__ == "__main__": sys.exit(main())`** entry point pattern
+
+---
+
+## Workflow
+
+### 1. Choose script type
+
+**Standalone script** (7 sections: IMPORTS → DECORATORS → CONSTANTS → CONFIG → LOGGING → CORE → MAIN) or **library module** (3 sections: IMPORTS → CONSTANTS → CORE only). See §1.1 below for details.
+
+### 2. Start from the template
+
+Copy `$SKILL_DIR/templates/agent_script_template.py` as your starting point. The template demonstrates every pattern described below.
+
+### 3. Fill sections in dependency order
+
+Constants → data models → functions → CLI → main. Each section depends only on what came before it.
+
+### 4. Verify before finalizing
+
+Run the verification checklist (§7) or execute:
+
+```bash
+python3 $SKILL_DIR/scripts/verify_conventions.py path/to/your_script.py
+```
+
+---
+
 ## When to Use
 
-- **Creating any new `.py` script** in this workspace — load this skill first, then open `templates/agent_script_template.py` as the starting structure.
+- **Creating any new `.py` script** in this workspace — load this skill first, then open `$SKILL_DIR/templates/agent_script_template.py` as the starting structure.
 - **Modifying an existing script** — refactor to match these conventions when the edit is substantial (layout, imports, logging, etc.).
-- **Reviewing a PR or diff that includes Python files** — use the checklist below as review criteria.
+- **Reviewing a PR or diff that includes Python files** — use the checklist (§7) as review criteria.
 - **Generating a single-file script** meant for `uv` or standalone execution.
 
 ### When NOT to Use
@@ -52,6 +90,8 @@ that partially follows it), **treat the edit as a section-layout review**:
 
 ---
 
+## 1. Script Structure & Layout
+
 ### 1.1 Standalone Scripts vs Library Modules
 
 A file in ``src/`` is either a **standalone script** (invoked from the
@@ -68,13 +108,13 @@ CORE LOGIC. No ``parse_args()``, no ``main()``, no ``setup_logger()``.
 The module-level docstring omits the CLI Usage block from the §3.2
 format, but keeps the title, description, I/O spec, and metadata.
 
-Check ``src/growth_signals.py`` in this workspace for a concrete example.
+For a concrete example of a library module following these conventions, see any shared utility module in a project following this skill (e.g., a `growth_signals.py` that defines classification logic imported by multiple scripts).
 
-### 1.2 Script Structure & Layout
+### 1.2 Section Order
 
 Scripts should follow this section order, reflecting a natural information **dependency hierarchy** — constants → data models → core logic → CLI → main — so each section only depends on what came before it. Omit sections that a script does not need (e.g., no enums, no decorators).
 
-Always use the `agent_script_template.py` template as the starting point:
+Always use the `$SKILL_DIR/templates/agent_script_template.py` as the starting point:
 
 ```python
 # =============================================================================
@@ -107,7 +147,7 @@ Always use the `agent_script_template.py` template as the starting point:
 ...
 ```
 
-### Imports Ordering
+### 1.3 Import Ordering
 
 Group imports into three blocks, sorted alphabetically within each block:
 
@@ -127,7 +167,7 @@ import pandas as pd
 from loguru import logger
 ```
 
-### Entry Point Pattern
+### 1.4 Entry Point Pattern
 
 All scripts must use the following pattern at the bottom:
 
@@ -141,7 +181,7 @@ This ensures:
 - Exit codes are propagated correctly
 - `main()` returns an integer (0 for success, non-zero for error)
 
-### Configuration Dataclass
+### 1.5 Configuration Dataclass
 
 Use `@dataclass(kw_only=True, slots=True, frozen=True)` for configuration:
 
@@ -159,7 +199,7 @@ class AppConfig:
 - `slots=True` → reduces memory footprint
 - `frozen=True` → makes the instance immutable (most configs shouldn't change after creation)
 
-### Logging with Loguru
+### 1.6 Logging with Loguru
 
 Use `loguru` for all output. Never use `print()` or `logging` stdlib:
 
@@ -362,40 +402,56 @@ def main() -> int:
 
 ### 5.1 Signal-Based Classification
 
-Replace deep `if-elif` chains with a declarative signal table + resolution engine. See `references/signal-based-classification.md` for the full pattern.
+Replace deep `if-elif` chains with a declarative signal table + resolution engine. 
 
-**When to use:** You have a rule-based text classifier with 8+ branches where ordering matters and rules can conflict.
+**When to use:** Rule-based text classifiers with 8+ branches where ordering matters and rules can conflict. Examples: phenotype classification, keyword-driven categorization, multi-label tagging.
 
 **Key idea:** Define all rules as data (a list of `Signal` dataclasses), detect all matches independently, then resolve conflicts in post-processing.
 
+→ Full pattern: [references/signal-based-classification.md](references/signal-based-classification.md)
+
 ### 5.2 Stem-Prefix Text Classification
 
-For keyword-profile analysis (categorizing every word in a corpus), use exact match + stem-prefix fallback. See `references/stem-prefix-classification.md`.
+For keyword-profile analysis (categorizing every word in a corpus), use exact match + stem-prefix fallback.
 
-**When to use:** You need to classify words into semantic categories (growth, morphology, modifiers, stop words) for quality inspection.
+**When to use:** Quality inspection, vocabulary analysis, word categorization across semantic groups (growth signals, morphology, modifiers, stop words).
 
 **Key idea:** 
 1. Exact match for compound/hyphenated tokens
 2. Short canonical stems (≥3 chars) for plurals and inflections
 3. Multi-word phrase pre-tokenization (convert "small colonies" → "small-colonies" before splitting)
 
+→ Full pattern: [references/stem-prefix-classification.md](references/stem-prefix-classification.md)
+
 ---
 
 ## 6. Common Pitfalls
 
+### 6.1 Layout & Imports (⚠️ Most Frequent)
+
 1. **Using `print()` instead of `logger`.** All output must go through `loguru`. The only exception: piping structured data to stdout for shell consumption (rare).
 
-2. **Forgetting `frozen=True` on config dataclasses.** Most configs should be immutable after creation. Only use `frozen=False` if the application genuinely needs hot-reloading.
+2. **Adding a new import inside a function body, class definition, or section header instead of the top-level IMPORTS section.** This happens most often when *patching* an existing script — the natural instinct is to add the import next to where the new code goes. Every import must live in the IMPORTS block at file scope. Imports placed elsewhere confuse the section structure, bypass the linting pass, and make the next editor hunt for where a symbol is imported. Fix: before applying a patch that needs a new import, scroll to the IMPORTS block, add it in the correct group, then reference it in the body.
 
-3. **Not returning exit codes from `main()`.** Shells, CI pipelines, and scripts that check `$?` can detect errors. The template already does this — just remember to return non-zero from `main()` on failure branches.
+3. **Unused imports left after refactoring.** Imports that were added during development but became unused after the code was refactored are easy to miss — the linter only catches them if a type checker like Pyright or `ruff check` is configured. Before finalising a script, scan the import block and verify every symbol is actually referenced in the body. The checklist below catches this; the pitfall section reminds you to look for it even when no linter is active.
 
-4. **Using `os.path.join()` / `os.path.exists()` instead of `pathlib.Path`.** The template imports `Path` and uses it throughout. Keep that consistent — `pathlib` is more readable, composable, and less error-prone.
+### 6.2 Type System & Configuration
 
-5. **Hardcoded string markers instead of `StrEnum`.** When the script uses column names, operation modes, or categorical statuses that appear in multiple places, define them as a `StrEnum`. This prevents silent breakage when a string changes in one place but not another.
+4. **Forgetting `frozen=True` on config dataclasses.** Most configs should be immutable after creation. Only use `frozen=False` if the application genuinely needs hot-reloading.
 
-6. **Creating decorators for single-use abstractions.** A decorator with only one consumer adds indirection without benefit. The rule: only create a custom decorator when it eliminates repetitive boilerplate across **3+** functions.
+5. **Using `os.path.join()` / `os.path.exists()` instead of `pathlib.Path`.** The template imports `Path` and uses it throughout. Keep that consistent — `pathlib` is more readable, composable, and less error-prone.
 
-7. **Deep `if-elif-else` chains for categorical logic.** Two alternatives depending on the problem:
+6. **Hardcoded string markers instead of `StrEnum`.** When the script uses column names, operation modes, or categorical statuses that appear in multiple places, define them as a `StrEnum`. This prevents silent breakage when a string changes in one place but not another.
+
+7. **Creating decorators for single-use abstractions.** A decorator with only one consumer adds indirection without benefit. The rule: only create a custom decorator when it eliminates repetitive boilerplate across **3+** functions.
+
+8. **Writing multi-line docstrings with formal Parameters/Returns blocks.** Section 3.1 mandates single-line docstrings — type hints carry the type information. When a core function has complex arguments, the natural instinct is to write NumPy-style or Sphinx-style docstrings with `Parameters\n----------\n...\nReturns\n-------\n...`. This violates the rule. The fix: keep the docstring to one concise line and let the type annotations do the rest. If the function genuinely needs narrative context, put it in a comment block inside the function body rather than in the docstring. This is the most commonly-violated rule because "important" functions feel like they deserve more documentation — resist the urge.
+
+### 6.3 Control Flow & Domain Logic
+
+9. **Not returning exit codes from `main()`.** Shells, CI pipelines, and scripts that check `$?` can detect errors. The template already does this — just remember to return non-zero from `main()` on failure branches.
+
+10. **Deep `if-elif-else` chains for categorical logic.** Two alternatives depending on the problem:
 
    - **Fixed enum variants** (the category set is known and closed): use
      `match...case` instead of a chain. It's more readable and the type
@@ -403,7 +459,7 @@ For keyword-profile analysis (categorizing every word in a corpus), use exact ma
 
    - **Rule-based classification from free-text** (keywords in a
      description drive the category): use the **signal-based
-     classification** pattern instead. See `references/signal-based-classification.md`
+     classification** pattern instead. See [references/signal-based-classification.md](references/signal-based-classification.md)
      under this skill for the full recipe. Pay special attention to
      **contextual signal suppression** — a keyword within a compound
      phrase (e.g. "spores" in "germinated spores") may not be an
@@ -412,20 +468,14 @@ For keyword-profile analysis (categorizing every word in a corpus), use exact ma
    - **Keyword‑profile / vocabulary analysis** (counting and categorising
      every word across category groups): use **stem‑prefix matching** —
      short canonical stems with an exact‑match fallback, plus hyphenated
-     phrase pre‑tokenisation. See `references/stem-prefix-classification.md`
+     phrase pre‑tokenisation. See [references/stem-prefix-classification.md](references/stem-prefix-classification.md)
      under this skill.
 
-8. **Unused imports left after refactoring.** Imports that were added during development but became unused after the code was refactored are easy to miss — the linter only catches them if a type checker like Pyright or `ruff check` is configured. Before finalising a script, scan the import block and verify every symbol is actually referenced in the body. The checklist below catches this; the pitfall section reminds you to look for it even when no linter is active.
-
-9. **Writing multi-line docstrings with formal Parameters/Returns blocks.** Section 3.2 mandates single-line docstrings — type hints carry the type information. When a core function has complex arguments, the natural instinct is to write NumPy-style or Sphinx-style docstrings with `Parameters\n----------\n...\nReturns\n-------\n...`. This violates the rule. The fix: keep the docstring to one concise line and let the type annotations do the rest. If the function genuinely needs narrative context, put it in a comment block inside the function body rather than in the docstring. This is the most commonly-violated rule because "important" functions feel like they deserve more documentation — resist the urge.
-
-10. **Adding a new import inside a function body, class definition, or section header instead of the top-level IMPORTS section.** This happens most often when *patching* an existing script — the natural instinct is to add the import next to where the new code goes. Every import must live in the IMPORTS block at file scope. Imports placed elsewhere confuse the section structure, bypass the linting pass, and make the next editor hunt for where a symbol is imported. Fix: before applying a patch that needs a new import, scroll to the IMPORTS block, add it in the correct group, then reference it in the body.
-
-11. **Forgetting to re-check `classify_phenotype_count()` logic after expanding MODIFIER_WORDS / GROWTH_KEYWORDS.** When adding words to the modifier or growth keyword lists, fewer commas will be classified as parallel (Multiple → Single shift). After any expansion, re-run the full pipeline and verify the count deltas are expected and justified. Verify with `df["Phenotype_count"].value_counts()` in the merged output.
+11. **Forgetting to re-check domain-specific classification logic after expanding keyword lists.** When adding words to modifier or category keyword lists in domain-specific scripts (e.g., bioinformatics phenotype classification), fewer items may be classified as one category and more as another (e.g., Multiple → Single shift). After any expansion, re-run the full pipeline and verify the count deltas are expected and justified. Verify with appropriate summary statistics in the merged output.
 
 ---
 
-## Verification Checklist
+## 7. Verification Checklist
 
 - [ ] Sections follow the ordered layout (IMPORTS → DECORATORS → CONSTANTS → CONFIG → LOGGING → CORE → MAIN)
 - [ ] Imports grouped: standard library → data processing → third-party, sorted alphabetically within each group
