@@ -5,10 +5,10 @@
   "skills": [
     {
       "name": "cnsplots",
-      "version": "1.5.0",
+      "version": "1.6.0",
       "path": "skills/cnsplots",
       "summary": "Publication-quality scientific figures in Python via the cnsplots package, including the rcParams style contract, grid/multi-panel composition patterns, dense journal-figure techniques, and cross-panel color strategy.",
-      "tags": ["python", "visualization", "science", "matplotlib", "publication", "rcparams", "multipanel", "figure-layout", "color-palettes"],
+      "tags": ["python", "visualization", "science", "matplotlib", "publication", "rcparams", "multipanel", "figure-layout", "color-palettes", "journal-guidelines"],
       "agents": ["codex", "claude-code"],
       "origin": "derivative-enhancement",
       "upstream": "https://github.com/faridrashidi/cnsplots",

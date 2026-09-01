@@ -132,6 +132,24 @@ for text in list(ax.texts):
 on functions that support it. The p-value method is printed to stdout; capture
 it for the figure legend.
 
+**Journal rejected the figure for low resolution** — `settings.savefig_dpi`
+defaults to `288`, below the 300 dpi floor Cell, Nature, and Science all require.
+Raise it: `with cns.settings.context(savefig_dpi=600):`. Note Cell wants 500 for
+combination art and 1000 for raster line art, and Nature requires editable vector
+for main figures rather than any raster at all. Run
+`python3 scripts/journal_preset.py <journal>` and see
+[journal-specs.md](journal-specs.md).
+
+**Journal rejected the figure for oversized text** — `settings.title_fontsize`
+defaults to `8`, which exceeds Nature's 7 pt cap for in-figure text (Cell allows
+6-8, Science targets 7). Lower it with
+`cns.settings.context(title_fontsize=7, legend_fontsize=6)`.
+
+**Figure is the wrong physical width** — sizes are pixels at 72 per inch, so
+convert the journal's millimetres: `px = mm / 25.4 * 72`. Nature double column
+183 mm is `max_width=519`, Cell 2-column 174 mm is `493`, Science full width
+184 mm is `522`. Verified: `max_width=519` yields a 183.1 mm figure.
+
 **SVG text became outlines, or the warning about `mutool`** — install MuPDF
 (`brew install mupdf-tools`) for Illustrator-optimized SVG post-processing.
 Without it, output is a standard matplotlib SVG.

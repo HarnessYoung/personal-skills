@@ -27,7 +27,7 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.5.0</span>
+  <span class="badge">v1.6.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
   <span class="badge verified">verified · cnsplots 0.7.0</span>
@@ -79,6 +79,10 @@ executable verification on top. Prefer upstream if you want to track it exactly.
     <p>Full journal figures: negative offsets that reclaim reserved space, embedded raster images, composite plotter internal axes, and reworking generated annotations. Derived from reproducing the upstream showcase.</p>
   </div>
   <div class="grid-card">
+    <h3><code>journal-specs.md</code> + <code>journal_preset.py</code></h3>
+    <p>Cell, Nature and Science column widths converted to cnsplots pixels, plus type, line-weight, resolution, format and colour-accessibility limits, each with its source URL. The script checks the installed defaults against a chosen journal and can emit a ready settings block.</p>
+  </div>
+  <div class="grid-card">
     <h3><code>color-strategy.md</code></h3>
     <p>One palette per figure, keeping a variable on one color across panels, qualitative vs sequential vs diverging, and colour-vision plus greyscale legibility checks. Audits the showcase's eight-palette variety and explains why that is the wrong model to copy.</p>
   </div>
@@ -126,6 +130,16 @@ Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
 <code>add_mode=False</code> does not suppress it, and three or more levels produce
 nothing at all. The skill requires inspecting <code>ax.texts</code> and either
 naming that test in the caption or removing the annotation deliberately.</p>
+
+<h3>Two defaults are not journal-compliant</h3>
+<p>Read against the publishers' own author pages: <code>savefig_dpi</code> defaults
+to 288, below the 300 dpi floor Cell, Nature and Science all require, and
+<code>title_fontsize</code> defaults to 8 pt, above Nature's 7 pt cap for in-figure
+text. Line weight at 0.5 pt satisfies all three. The bundled script reports these
+against the installed version rather than a transcribed table. Also note the
+journal-named palettes are journal-<em>styled</em>, not compliant: the
+<code>Science</code> palette places red and green adjacent, which Science's own
+guidance forbids.</p>
 
 <h3><code>tight_layout</code> is not multipanel's counterpart</h3>
 <p><code>multipanel</code> self-corrects through a <code>draw_event</code> handler it
@@ -183,7 +197,7 @@ cns.savefig("multipanel.svg")</code></pre>
 
 <h2>Verification record</h2>
 <p>Tested 2026-09-01 on Python 3.12.14 with cnsplots 0.7.0 and matplotlib 3.10.9.
-All four scripts including <code>dump_style.py greyscale</code> run with correct exit
+All five scripts including <code>dump_style.py greyscale</code> and <code>journal_preset.py</code> run with correct exit
 codes, all four templates plus the two vendored upstream showcase scripts execute
 and were rendered to PNG and visually inspected, and every published rcParams and
 settings value is measured from the installed package rather than transcribed. Panel
@@ -193,8 +207,10 @@ empirically. The upstream showcase Figure 1 and Figure 2 were reproduced end to
 end and inspected, then each showcase-only technique was verified independently
 rather than copied  -  including whether the example's private
 <code>_capture_detached_axes_layout</code> call is load-bearing, which it is not.
-The documented <code>mutool</code>-missing fallback was confirmed to warn rather
-than fail.</p>
+Cell, Nature and Science figure requirements were read from the publishers' own
+author pages, converted to pixels, and a full Nature-compliant preset was run end
+to end. The documented <code>mutool</code>-missing fallback was confirmed to warn
+rather than fail.</p>
 
 <h2>Provenance</h2>
 <div class="split-2">

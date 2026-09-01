@@ -156,10 +156,19 @@ palette stays reserved for data. The showcase draws its mean lines with
 
 Color choice is not done until checked:
 
-- **Color vision.** Roughly 8% of men have red-green deficiency. `Set1` red vs
-  green and `Ecotyper1` `#d6372e` vs `#70b460` are the risky pairs. Prefer
-  blue-orange for two-level contrasts, or add a non-color channel (marker shape,
-  line dash, direct labels).
+- **Color vision.** Roughly 8% of men have red-green deficiency, and Cell, Nature,
+  and Science all explicitly instruct authors not to pair red with green. `Set1`
+  red vs green and `Ecotyper1` `#d6372e` vs `#70b460` are the risky pairs; so is
+  the `Science` palette, whose entries 1 and 2 are `#ee0000` red and `#008b45`
+  green, adjacent in the cycle. Prefer blue-orange for two-level contrasts, or add
+  a non-color channel (marker shape, line dash, direct labels).
+
+  Nature requires an accessible palette and cites the Wong 8-color set, which is
+  worth having to hand: `#000000` black, `#e69f00` orange, `#56b4e9` sky blue,
+  `#009e73` bluish green, `#f0e442` yellow, `#0072b2` blue, `#d55e00` vermillion,
+  `#cc79a7` reddish purple. Pass it as an explicit `color_cycle` when a journal
+  demands it. Publisher requirements:
+  [journal-specs.md](journal-specs.md).
 - **Greyscale.** Convert the PNG to L and confirm the series remain
   distinguishable, since figures get printed and photocopied.
 - **Never encode by color alone** where the distinction carries the claim. Add

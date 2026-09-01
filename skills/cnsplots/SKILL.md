@@ -20,6 +20,9 @@ project root:
 - `$SKILL_DIR/scripts/check_env.py` — environment and dependency probe
 - `$SKILL_DIR/scripts/inspect_api.py` — installed signatures and docstrings
 - `$SKILL_DIR/scripts/dump_style.py` — measured rcParams, settings, palettes, colors
+- `$SKILL_DIR/scripts/journal_preset.py` — Cell/Nature/Science figure limits in
+  pixels, and which installed defaults violate them; `--code` emits a ready
+  `settings.context(...)` block
 - `$SKILL_DIR/scripts/validate_output.py` — post-save artifact validation
 
 ## Bundled templates
@@ -50,6 +53,12 @@ block. Start from one instead of writing a layout from scratch:
 - One palette per figure, and one color per meaning. Pass `hue_order` on every
   panel sharing a categorical variable, or the same category drifts color between
   panels. See [references/color-strategy.md](references/color-strategy.md).
+- When a target journal is known, size the figure to its column width and apply
+  its type and resolution limits. Two package defaults are **not** universally
+  compliant: `title_fontsize=8` exceeds Nature's 7 pt cap, and `savefig_dpi=288`
+  is below the 300 dpi floor Cell, Nature, and Science all require. Run
+  `python3 $SKILL_DIR/scripts/journal_preset.py <journal>` and see
+  [references/journal-specs.md](references/journal-specs.md).
 - Never hardcode a style value the package already sets. Inherit it, or read it
   from `mpl.rcParams` / `cns.settings`. See
   [references/rcparams.md](references/rcparams.md).
@@ -222,6 +231,9 @@ Load these on demand; do not read them all up front.
 - [references/color-strategy.md](references/color-strategy.md) — one palette per
   figure, keeping a variable on one color, qualitative vs sequential vs diverging,
   color-vision and greyscale checks
+- [references/journal-specs.md](references/journal-specs.md) — Cell, Nature, and
+  Science column widths, type and line limits, resolution and format
+  requirements, and which package defaults violate them
 - [references/style-bridge.md](references/style-bridge.md) — matplotlib, seaborn,
   scanpy, and plotnine integration
 - [references/rcparams.md](references/rcparams.md) — the rcParams contract; read

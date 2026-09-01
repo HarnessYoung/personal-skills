@@ -3,6 +3,58 @@
 All notable changes to this skill. Versioning is [SemVer](https://semver.org/)
 applied to the *skill*, independent of the `cnsplots` package version.
 
+## [1.6.0] — 2026-09-01
+
+Adds Cell Press, Nature, and Science figure specifications, read from the
+publishers' own author pages, and flags where the package defaults do not comply.
+
+### Added
+- `references/journal-specs.md` — column widths converted to cnsplots pixels,
+  type and line-weight limits, resolution and file-format requirements, colour
+  accessibility rules, statistics-in-legend requirements, and per-journal
+  presets. Every number carries its source URL, and items that could not be
+  verified are marked as such rather than filled in from general knowledge.
+- `scripts/journal_preset.py` — prints a journal's limits in pixels and checks
+  the *installed* defaults against them, so it stays honest across cnsplots
+  upgrades. `--code` emits a ready `settings.context(...)` block.
+
+### Notes
+Two package defaults are not universally compliant, both now called out in
+`SKILL.md` and `troubleshooting.md`:
+
+- `savefig_dpi = 288` is **below the 300 dpi floor** that Cell, Nature, and
+  Science all require. 288 is 72x4; the nearest compliant multiple is 360.
+- `title_fontsize = 8` **exceeds Nature's 7 pt cap** for in-figure text. Cell
+  allows 6-8 pt, so 8 sits exactly at its ceiling; Science targets 7 pt.
+
+Line weight (0.5 pt) satisfies all three. `pdf.fonttype = 42` and
+`svg.fonttype = 'none'` already match Nature's font-embedding and editable-text
+requirements.
+
+Key conversions, verified: Nature double column 183 mm is `max_width=519` and
+renders at 183.1 mm; Cell 2-column 174 mm is 493 px; Science full width 184 mm is
+522 px. Science counts the page as three columns, so its "2 column" is a
+mid-width figure. A full Nature preset was run end to end and produced a
+183.1 x 117.8 mm vector PDF at 7 pt text, 0.5 pt lines, 360 dpi, with lowercase
+panel labels.
+
+Also worth knowing: **cnsplots' journal-named palettes are journal-styled, not
+journal-compliant.** The `Science` palette has `#ee0000` red at index 1 and
+`#008b45` green at index 2, adjacent in the cycle, which Science's own guidance
+says not to pair. `color-strategy.md` now records this and carries the Wong
+8-colour palette that Nature cites, verified usable as an explicit
+`color_cycle`.
+
+Nature's own pages contradict each other on widths (89/183 mm on the figure guide
+and final-submission, 90/180 mm on formatting-guide and initial-submission); the
+reference records both and recommends 89/183. Science's colour mode, maximum
+figure height, and error-bar conventions are not stated on any accessible page,
+apparently living only in a CAPTCHA-gated PDF, and are marked unverified.
+
+### Verified
+Against `cnsplots` 0.7.0 on Python 3.12.14 / matplotlib 3.10.9. See
+`skill.json` → `verification`.
+
 ## [1.5.0] — 2026-09-01
 
 Documents multipanel's self-correcting layout mechanism, and corrects two
