@@ -72,6 +72,12 @@ mp.panel("D", 50, 100,
 `get_hexcolors_from_apalette(indices, palette)` pulls specific entries out of a
 palette, which is how you give two panels distinguishable but related colors.
 
+**Do not copy the showcase's palette variety.** It switches palette on nearly
+every panel because it is demonstrating the catalog, with the result that iris
+`species` renders in four different colors across four panels of one figure. A
+real figure uses one palette and one color per meaning. See
+[color-strategy.md](color-strategy.md).
+
 ## Offsets: reserve, then reclaim
 
 Four knobs, and the sign matters:

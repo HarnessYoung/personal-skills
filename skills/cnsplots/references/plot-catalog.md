@@ -93,7 +93,11 @@ Color:
   only; sequential names such as `gnuplot` raise `RuntimeError`.
 - `get_hexcolors_from_apalette(indices)`: specific colors from the active palette.
 - Constants: `RED`, `BLUE`, `GREEN`, `ORANGE`, `PURPLE`, `YELLOW`, `PINK`, `GRAY`,
-  `BROWN`, `VIOLET`, `CHOCOLATE`.
+  `BROWN`, `VIOLET`, `CHOCOLATE`. The first seven are `Ecotyper1` members;
+  `VIOLET` and `CHOCOLATE` sit outside it and read as non-palette colors.
+
+Choosing and coordinating colors across panels:
+[color-strategy.md](color-strategy.md).
 
 Models and data:
 

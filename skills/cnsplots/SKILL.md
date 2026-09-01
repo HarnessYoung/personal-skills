@@ -47,6 +47,9 @@ block. Start from one instead of writing a layout from scratch:
   inches. Rendering happens at 144 dpi, so a 200-px figure rasterizes to 400 px.
 - Never invent data, labels, units, group orders, thresholds, or statistical
   tests. If a choice changes scientific meaning and cannot be inferred, ask.
+- One palette per figure, and one color per meaning. Pass `hue_order` on every
+  panel sharing a categorical variable, or the same category drifts color between
+  panels. See [references/color-strategy.md](references/color-strategy.md).
 - Never hardcode a style value the package already sets. Inherit it, or read it
   from `mpl.rcParams` / `cns.settings`. See
   [references/rcparams.md](references/rcparams.md).
@@ -157,6 +160,15 @@ look blank on a dark background. Check: text clipping, overlapping tick labels,
 legend collisions, misleading or truncated axes, indistinguishable colors, panel
 misalignment, and annotations you did not ask for.
 
+Also confirm the same category carries the same color in every panel, and check
+the figure in greyscale, since figures get printed:
+
+```python
+from PIL import Image
+
+Image.open("figure.png").convert("L").save("figure_grey.png")
+```
+
 For multipanel, confirm the row structure is what you intended. `max_width` must
 exceed the sum of axes widths **plus** each panel's decoration reserve and
 margins; otherwise a panel wraps to the next row with no warning. Measured: two
@@ -202,6 +214,9 @@ Load these on demand; do not read them all up front.
 - [references/dense-figures.md](references/dense-figures.md) — full journal
   figures: negative offsets, embedded images, composite plotter internals,
   reworking generated annotations
+- [references/color-strategy.md](references/color-strategy.md) — one palette per
+  figure, keeping a variable on one color, qualitative vs sequential vs diverging,
+  color-vision and greyscale checks
 - [references/style-bridge.md](references/style-bridge.md) — matplotlib, seaborn,
   scanpy, and plotnine integration
 - [references/rcparams.md](references/rcparams.md) — the rcParams contract; read

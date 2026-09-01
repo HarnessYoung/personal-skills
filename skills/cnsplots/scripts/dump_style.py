@@ -24,7 +24,7 @@ import argparse
 import sys
 from typing import Any
 
-SECTIONS = ("rcparams", "settings", "palettes", "colors")
+SECTIONS = ("rcparams", "settings", "palettes", "colors", "greyscale")
 
 # Candidate palette names probed against the installed package. Names that the
 # installed cns.palettes() rejects are reported as unavailable rather than
@@ -106,6 +106,36 @@ def collect_colors() -> list[tuple[str, str]]:
     return [(n, getattr(cns, n)) for n in COLOR_CONSTANTS if hasattr(cns, n)]
 
 
+def check_greyscale(palette: str, count: int | None = None) -> list[tuple]:
+    """Report perceived lightness of a palette's colors and flag close pairs.
+
+    Series that differ only in hue collapse when printed in greyscale. This
+    computes Rec. 601 luma for each entry and flags pairs within 0.10, which are
+    hard to tell apart without color.
+    """
+    import matplotlib.colors as mcolors
+
+    import cnsplots as cns
+
+    colors = cns.palettes(palette)
+    if count:
+        colors = list(colors)[:count]
+
+    rows = []
+    for index, color in enumerate(colors):
+        r, g, b = mcolors.to_rgb(color)
+        luma = 0.299 * r + 0.587 * g + 0.114 * b
+        rows.append((index, mcolors.to_hex(color), luma))
+
+    clashes = [
+        (a[0], b[0], abs(a[2] - b[2]))
+        for i, a in enumerate(rows)
+        for b in rows[i + 1 :]
+        if abs(a[2] - b[2]) < 0.10
+    ]
+    return rows, clashes
+
+
 def emit_plain(sections: tuple[str, ...]) -> None:
     import cnsplots as cns
 
@@ -135,6 +165,20 @@ def emit_plain(sections: tuple[str, ...]) -> None:
         print("\n== color constants ==")
         for name, value in collect_colors():
             print(f"cns.{name:<10} {value}")
+
+    if "greyscale" in sections:
+        target = cns.settings.palette_qual
+        rows, clashes = check_greyscale(target)
+        print(f"\n== greyscale separation: {target} ==")
+        for index, hex_value, luma in rows:
+            bar = "#" * max(1, round(luma * 40))
+            print(f"  [{index}] {hex_value}  luma={luma:.3f}  {bar}")
+        if clashes:
+            print("  pairs within 0.10 luma (collapse in greyscale):")
+            for a, b, delta in clashes:
+                print(f"    [{a}] vs [{b}]  delta={delta:.3f}")
+        else:
+            print("  no pairs within 0.10 luma")
 
 
 def emit_markdown(sections: tuple[str, ...]) -> None:

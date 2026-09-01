@@ -3,6 +3,51 @@
 All notable changes to this skill. Versioning is [SemVer](https://semver.org/)
 applied to the *skill*, independent of the `cnsplots` package version.
 
+## [1.4.0] — 2026-09-01
+
+Adds cross-panel color strategy guidance, driven by auditing the showcase's
+palette choices and measuring what actually happens to a shared category across
+panels.
+
+### Added
+- `references/color-strategy.md` — how to keep one variable on one color across
+  panels, qualitative vs sequential vs diverging, color-vision and greyscale
+  legibility checks, and why the showcase's variety is the wrong model to copy.
+  Every code sample verified to run.
+- `scripts/dump_style.py greyscale` — prints each palette entry's Rec. 601 luma
+  and flags pairs within 0.10, which collapse in greyscale. The default
+  `Ecotyper1` has several: entries 4 and 6 differ by 0.005 luma.
+
+### Changed
+- `SKILL.md` adds the one-palette/one-color-per-meaning rule to the guidelines,
+  and expands the visual check to include greyscale and cross-panel color
+  consistency.
+- `references/dense-figures.md` adds a note that the showcase is a palette
+  catalog, not a color-consistent figure, with a pointer to the strategy
+  reference.
+- `references/troubleshooting.md` gains three color entries: indistinguishable
+  colors, inconsistent color for the same category across panels, and misleading
+  diverging colormap when the scale is not centered.
+- `references/plot-catalog.md` notes which color constants sit outside
+  `Ecotyper1`, and links to the color strategy reference.
+
+### Notes
+Audited every `color_cycle=` and `cmap=` in the vendored showcase source.
+Figure 1 uses **eight different palettes across 18 panels**, and four panels plot
+iris `species` in four different colors: `setosa` is `#662506` (all species
+identical under `CHOCOLATE`), `#d13570` (`Ecotyper3`), `#d6372e` (`Ecotyper1`),
+and `#e41a1c` (`Set1`). That is a feature catalog, not a publication figure; in a
+real figure inconsistent color is a defect.
+
+Verified two control mechanisms: same palette + explicit `hue_order` gives
+bit-identical colors across panels, and an explicit color list plus a matching
+`hue_order` pins specific colors regardless of who else is present. Both tested
+on scatterplot and kdeplot pairs.
+
+### Verified
+Against `cnsplots` 0.7.0 on Python 3.12.14 / matplotlib 3.10.9. See
+`skill.json` → `verification`.
+
 ## [1.3.0] — 2026-09-01
 
 Vendors the upstream showcase source as reference material, and tightens the

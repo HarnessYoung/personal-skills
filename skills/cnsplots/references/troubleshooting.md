@@ -131,7 +131,20 @@ supply a font that covers the characters.
 **Colors indistinguishable** — switch `color_cycle` (`Ecotyper1`, `Cell`,
 `Nature`, `Science`, `Set1`) and check greyscale/color-vision legibility for
 categorical series. List the accepted names with
-`python3 scripts/dump_style.py palettes`.
+`python3 scripts/dump_style.py palettes`. Red-green pairs are the usual
+offender: prefer blue-orange for a two-level contrast, or add a non-color
+channel.
+
+**The same category is a different color in different panels** — the hue order
+came from each panel's data, so a panel missing a category shifts every color
+after it. Define the order once and pass `hue_order=` on every panel that shares
+the variable. For a subset panel, also pass a matching `color_cycle` built from
+your category-to-color map. See [color-strategy.md](color-strategy.md).
+
+**Diverging colormap looks misleading** — the scale is not centered, so the
+midpoint color sits at an arbitrary value. Set `vmin`/`vmax` symmetrically about
+the meaningful midpoint (usually 0) whenever you use `BuRd_custom`,
+`OrBu_custom`, or `BlueRed` for signed values.
 
 **`RuntimeError: Wrong Choice!` from `cns.palettes()`** — a sequential colormap
 name was passed to a qualitative-palette function. `settings.palette_seq`

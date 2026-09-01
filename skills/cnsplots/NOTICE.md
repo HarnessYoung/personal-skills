@@ -26,6 +26,7 @@ measured rcParams/settings style contract, and layout composition guidance.
 | `references/composition-patterns.md` | Original; based on measurements of `_multipanels.py` behavior |
 | `references/style-bridge.md` | Original |
 | `references/dense-figures.md` | Original prose; techniques derived from the upstream showcase example |
+| `references/color-strategy.md` | Original prose; audits the vendored showcase source and measures assigned colors |
 | `scripts/*.py` | Original |
 | `templates/*.py` | Original code; `dense_figure.py` follows the structure of the upstream showcase example |
 | `templates/upstream-showcase/figure1.py`, `figure2.py` | **Vendored verbatim** from the upstream showcase; copyright Farid Rashidi, BSD-3-Clause |
