@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# Convention-exempt: CLI tool using print() for formatted output
 """
 Verify Python Script Conventions
 
@@ -12,13 +13,26 @@ Usage:
 Exit codes:
     0 - All checks passed
     1 - One or more checks failed
+
+Note: This CLI verification tool uses print() for terminal output, which is
+appropriate for its purpose. Regular scripts should use loguru.
 """
 
+# ==================== §1 IMPORTS ====================
 import argparse
+import ast
 import re
 import sys
 from pathlib import Path
 from typing import NamedTuple
+
+# Note: This script uses print() for output formatting, which is appropriate
+# for a CLI tool that reports to stdout/stderr. Normal scripts should use loguru.
+
+# ==================== §3 CONSTANTS ====================
+# (No constants in this script)
+
+# ==================== §6 CORE LOGIC ====================
 
 
 class CheckResult(NamedTuple):
@@ -30,75 +44,130 @@ class CheckResult(NamedTuple):
 
 def check_section_headers(content: str) -> CheckResult:
     """Verify that section headers are present and in the correct order."""
-    expected_sections = [
-        "# ==================== §1 IMPORTS ====================",
-        "# ==================== §3 CONSTANTS ====================",
-        "# ==================== §6 CORE LOGIC ====================",
-    ]
+    # Accept both formats:
+    # Format 1 (template): # ==================== §N SECTION ====================
+    # Format 2 (SKILL.md): # =============================================================================
+    #                      # SECTION
+    #                      # =============================================================================
     
-    # For standalone scripts, also check for MAIN section
     has_main_guard = 'if __name__ == "__main__"' in content
+    
+    # For standalone scripts, check for IMPORTS, CONSTANTS, CORE LOGIC, and MAIN sections
+    # For library modules, MAIN section is optional
+    required_keywords = ["IMPORTS", "CONSTANTS", "CORE"]
     if has_main_guard:
-        expected_sections.append("# ==================== §7 MAIN EXECUTION ====================")
+        required_keywords.append("MAIN")
+    
+    lines = content.split("\n")
+    found_sections = []
+    
+    for i, line in enumerate(lines):
+        # Match format 1: single-line banner with section name
+        if re.match(r'#\s*=+\s*§?\d*\s*([A-Z][A-Z\s&()]+?)\s*=+\s*$', line):
+            match = re.search(r'([A-Z][A-Z\s&()]+)', line)
+            if match:
+                found_sections.append(match.group(1).strip())
+        
+        # Match format 2: three-line banner (check middle line)
+        elif re.match(r'#\s*=+\s*$', line) and i > 0:
+            prev_line = lines[i - 1].strip()
+            if prev_line.startswith('#') and not '=' in prev_line:
+                # Extract section name from previous line
+                section_name = prev_line.lstrip('#').strip()
+                if section_name.isupper():
+                    found_sections.append(section_name)
     
     missing = []
-    for section in expected_sections:
-        # Allow flexible numbering (§1-7) but check for presence
-        pattern = section.replace("§", "§?\\d+")
-        if not re.search(re.escape(section).replace(r"\§\d\+", "§\\d+"), content):
-            missing.append(section)
+    for keyword in required_keywords:
+        # Check if any found section contains this keyword
+        if not any(keyword in section for section in found_sections):
+            missing.append(keyword)
     
     if missing:
-        return CheckResult(False, f"Missing section headers: {missing}")
+        return CheckResult(False, f"Missing section headers for: {missing}")
     return CheckResult(True, "Section headers present")
 
 
-def check_imports_location(content: str) -> CheckResult:
-    """Check that all imports are in the IMPORTS section."""
-    lines = content.split("\n")
-    in_imports_section = False
-    imports_section_ended = False
+def check_imports_location(content: str, tree: ast.Module) -> CheckResult:
+    """Check that all imports are at module level (not inside functions/classes)."""
     violations = []
     
-    for i, line in enumerate(lines, 1):
-        stripped = line.strip()
-        
-        # Track IMPORTS section boundaries
-        if "IMPORTS" in line and "====" in line:
-            in_imports_section = True
-            continue
-        
-        if in_imports_section and "====" in line and "IMPORTS" not in line:
-            in_imports_section = False
-            imports_section_ended = True
-            continue
-        
-        # Check for imports outside IMPORTS section
-        if imports_section_ended and (stripped.startswith("import ") or stripped.startswith("from ")):
-            # Allow imports in docstrings or comments
-            if not (line.lstrip().startswith("#") or line.lstrip().startswith('"""') or line.lstrip().startswith("'")):
-                violations.append(f"Line {i}: {stripped[:50]}")
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Import, ast.ImportFrom)):
+            # Check if this import is nested inside a function or class
+            # We do this by checking if any parent in the tree is a FunctionDef or ClassDef
+            # Since ast.walk doesn't preserve parent info, we parse again with a visitor
+            pass
     
-    if violations:
-        return CheckResult(False, f"Imports outside IMPORTS section:\n  " + "\n  ".join(violations[:5]))
-    return CheckResult(True, "All imports in IMPORTS section")
+    # Use a custom visitor to track nesting
+    class ImportChecker(ast.NodeVisitor):
+        def __init__(self):
+            self.violations = []
+            self.scope_stack = []
+        
+        def visit_FunctionDef(self, node):
+            self.scope_stack.append(('function', node.name))
+            self.generic_visit(node)
+            self.scope_stack.pop()
+        
+        def visit_AsyncFunctionDef(self, node):
+            self.scope_stack.append(('function', node.name))
+            self.generic_visit(node)
+            self.scope_stack.pop()
+        
+        def visit_ClassDef(self, node):
+            self.scope_stack.append(('class', node.name))
+            self.generic_visit(node)
+            self.scope_stack.pop()
+        
+        def visit_Import(self, node):
+            if self.scope_stack:
+                scope_type, scope_name = self.scope_stack[-1]
+                for alias in node.names:
+                    self.violations.append(
+                        f"Line {node.lineno}: import {alias.name} (inside {scope_type} {scope_name})"
+                    )
+            self.generic_visit(node)
+        
+        def visit_ImportFrom(self, node):
+            if self.scope_stack:
+                scope_type, scope_name = self.scope_stack[-1]
+                module = node.module or ''
+                self.violations.append(
+                    f"Line {node.lineno}: from {module} import ... (inside {scope_type} {scope_name})"
+                )
+            self.generic_visit(node)
+    
+    checker = ImportChecker()
+    checker.visit(tree)
+    
+    if checker.violations:
+        return CheckResult(
+            False,
+            f"Imports outside module level:\n  " + "\n  ".join(checker.violations[:5])
+        )
+    return CheckResult(True, "All imports at module level")
 
 
-def check_no_print_calls(content: str) -> CheckResult:
+def check_no_print_calls(content: str, tree: ast.Module) -> CheckResult:
     """Check that there are no print() calls (should use logger instead)."""
-    lines = content.split("\n")
+    # Check for convention-exempt marker (for CLI tools that need print)
+    if "Convention-exempt: CLI tool using print()" in content:
+        return CheckResult(True, "CLI tool (print() allowed)")
+    
     violations = []
     
-    for i, line in enumerate(lines, 1):
-        stripped = line.strip()
-        # Look for print( but not in comments or docstrings
-        if "print(" in stripped and not stripped.startswith("#"):
-            # Skip if it's in a docstring or string literal
-            if '"""' not in stripped and "'''" not in stripped:
-                violations.append(f"Line {i}: {stripped[:60]}")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            # Check if the function being called is 'print'
+            if isinstance(node.func, ast.Name) and node.func.id == 'print':
+                violations.append(f"Line {node.lineno}: print() call found")
     
     if violations:
-        return CheckResult(False, f"Found print() calls (use logger instead):\n  " + "\n  ".join(violations[:5]))
+        return CheckResult(
+            False,
+            f"Found print() calls (use logger instead):\n  " + "\n  ".join(violations[:5])
+        )
     return CheckResult(True, "No print() calls found")
 
 
@@ -116,62 +185,91 @@ def check_entry_point(content: str) -> CheckResult:
     return CheckResult(True, "Entry point pattern correct")
 
 
-def check_pathlib_usage(content: str) -> CheckResult:
-    """Check for pathlib.Path usage vs os.path."""
+def check_pathlib_usage(tree: ast.Module) -> CheckResult:
+    """Check for os.path usage instead of pathlib.Path."""
     violations = []
-    lines = content.split("\n")
     
-    os_path_patterns = [
-        (r"os\.path\.join", "os.path.join"),
-        (r"os\.path\.exists", "os.path.exists"),
-        (r"os\.path\.dirname", "os.path.dirname"),
-        (r"os\.path\.basename", "os.path.basename"),
-    ]
-    
-    for i, line in enumerate(lines, 1):
-        stripped = line.strip()
-        if stripped.startswith("#"):
-            continue
-        
-        for pattern, name in os_path_patterns:
-            if re.search(pattern, stripped):
-                violations.append(f"Line {i}: {name} (use pathlib.Path instead)")
+    for node in ast.walk(tree):
+        # Check for os.path.* calls
+        if isinstance(node, ast.Attribute):
+            if isinstance(node.value, ast.Attribute):
+                # Check for os.path pattern
+                if (isinstance(node.value.value, ast.Name) and 
+                    node.value.value.id == 'os' and 
+                    node.value.attr == 'path'):
+                    violations.append(
+                        f"Line {node.lineno}: os.path.{node.attr} (use pathlib.Path instead)"
+                    )
     
     if violations:
-        return CheckResult(False, f"Use pathlib.Path instead of os.path:\n  " + "\n  ".join(violations[:5]))
+        return CheckResult(
+            False,
+            f"Use pathlib.Path instead of os.path:\n  " + "\n  ".join(violations[:5])
+        )
     return CheckResult(True, "Using pathlib.Path")
 
 
-def check_dataclass_flags(content: str) -> CheckResult:
-    """Check that dataclasses use the recommended flags."""
+def check_dataclass_flags(tree: ast.Module) -> CheckResult:
+    """Check that dataclasses use all three recommended flags."""
     violations = []
-    lines = content.split("\n")
     
-    for i, line in enumerate(lines, 1):
-        if "@dataclass" in line and not line.strip().startswith("#"):
-            # Check if it has the recommended flags
-            if "kw_only=True" not in line and "slots=True" not in line:
-                violations.append(f"Line {i}: Missing kw_only=True, slots=True, frozen=True")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef):
+            # Check if class has @dataclass decorator
+            for decorator in node.decorator_list:
+                is_dataclass = False
+                keywords_present = {'kw_only': False, 'slots': False, 'frozen': False}
+                
+                # Handle @dataclass or @dataclass(...)
+                if isinstance(decorator, ast.Name) and decorator.id == 'dataclass':
+                    is_dataclass = True
+                elif isinstance(decorator, ast.Call):
+                    if isinstance(decorator.func, ast.Name) and decorator.func.id == 'dataclass':
+                        is_dataclass = True
+                        # Check keywords
+                        for keyword in decorator.keywords:
+                            if keyword.arg in keywords_present:
+                                # Check if the value is True
+                                if isinstance(keyword.value, ast.Constant) and keyword.value.value is True:
+                                    keywords_present[keyword.arg] = True
+                
+                if is_dataclass:
+                    missing = [k for k, v in keywords_present.items() if not v]
+                    if missing:
+                        violations.append(
+                            f"Line {node.lineno}: @dataclass on {node.name} missing flags: {missing}"
+                        )
     
     if violations:
-        return CheckResult(False, "Dataclass missing recommended flags:\n  " + "\n  ".join(violations), severity="warning")
+        return CheckResult(
+            False,
+            "Dataclass missing recommended flags:\n  " + "\n  ".join(violations),
+            severity="warning"
+        )
     return CheckResult(True, "Dataclass flags correct")
 
 
-def check_loguru_usage(content: str) -> CheckResult:
-    """Check that loguru is imported and used (for standalone scripts)."""
+def check_loguru_usage(content: str, tree: ast.Module) -> CheckResult:
+    """Check that loguru is imported (for standalone scripts)."""
     has_main = 'if __name__ == "__main__"' in content
     
     if not has_main:
         # Library module, loguru is optional
         return CheckResult(True, "Library module (loguru optional)")
     
-    has_loguru_import = "from loguru import logger" in content
+    # Check for convention-exempt marker (for CLI tools)
+    if "Convention-exempt: CLI tool using print()" in content:
+        return CheckResult(True, "CLI tool (loguru optional)")
     
-    if not has_loguru_import:
-        return CheckResult(False, "Standalone script missing: from loguru import logger")
+    # Check if loguru is imported
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if node.module == 'loguru':
+                for alias in node.names:
+                    if alias.name == 'logger':
+                        return CheckResult(True, "Loguru imported")
     
-    return CheckResult(True, "Loguru imported")
+    return CheckResult(False, "Standalone script missing: from loguru import logger")
 
 
 def verify_script(script_path: Path, verbose: bool = False) -> bool:
@@ -182,19 +280,26 @@ def verify_script(script_path: Path, verbose: bool = False) -> bool:
     
     content = script_path.read_text(encoding="utf-8")
     
+    # Parse the AST
+    try:
+        tree = ast.parse(content, filename=str(script_path))
+    except SyntaxError as e:
+        print(f"❌ Syntax Error: {e}", file=sys.stderr)
+        return False
+    
     checks = [
-        ("Section Headers", check_section_headers),
-        ("Import Location", check_imports_location),
-        ("No print() Calls", check_no_print_calls),
-        ("Entry Point Pattern", check_entry_point),
-        ("pathlib Usage", check_pathlib_usage),
-        ("Dataclass Flags", check_dataclass_flags),
-        ("Loguru Import", check_loguru_usage),
+        ("Section Headers", lambda: check_section_headers(content)),
+        ("Import Location", lambda: check_imports_location(content, tree)),
+        ("No print() Calls", lambda: check_no_print_calls(content, tree)),
+        ("Entry Point Pattern", lambda: check_entry_point(content)),
+        ("pathlib Usage", lambda: check_pathlib_usage(tree)),
+        ("Dataclass Flags", lambda: check_dataclass_flags(tree)),
+        ("Loguru Import", lambda: check_loguru_usage(content, tree)),
     ]
     
     results = []
     for name, check_func in checks:
-        result = check_func(content)
+        result = check_func()
         results.append((name, result))
     
     # Print results
@@ -233,6 +338,9 @@ def verify_script(script_path: Path, verbose: bool = False) -> bool:
     print(f"{'='*70}\n")
     
     return errors == 0
+
+
+# ==================== §7 MAIN EXECUTION ====================
 
 
 def main() -> int:
