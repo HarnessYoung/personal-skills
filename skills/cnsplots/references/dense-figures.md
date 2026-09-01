@@ -8,12 +8,56 @@ run and inspected against 0.7.0 while writing this.
 Read [composition-patterns.md](composition-patterns.md) first for the layout
 engines. This file covers what a *dense* figure needs beyond them.
 
+The verbatim upstream source is vendored at
+`templates/upstream-showcase/figure1.py` and `figure2.py`. When this description
+and those files disagree, the files win.
+
 ## Panels are hand-tuned, not uniform
 
 A showcase-grade figure gives every panel its own size and spacing. Sizes are not
 tidy round numbers: `45x100`, `60x100`, `90x90`, `190x90`, `319x160`. Set them
 from what the panel's content needs, then adjust the offsets until nothing
 collides. This is iterative; expect to render and look several times.
+
+## Density comes from interlocking, not from small margins
+
+The single biggest lever on how packed a figure looks is **stacking short panels
+into the vertical space a tall neighbour occupies**, using `below=`. A flat row of
+mixed-height panels leaves dead space above or below every short one.
+
+Both showcase figures use three `below=` stacks each. Figure 1 pairs a 40x40
+venn over a 50x50 donut beside 90x90 squares, and an 80x40 barplot over a 40x40
+pie beside 100-px-tall panels. In each case two short panels together span one
+tall panel's band.
+
+Measured on the rendered PNGs, as the fraction of interior rows that are entirely
+empty:
+
+| Figure | Panels | `below=` stacks | Interior empty rows |
+| --- | --- | --- | --- |
+| upstream Figure 1 | 18 | 3 | 4.77% |
+| upstream Figure 2 | 13 | 3 | 5.44% |
+| `templates/dense_figure.py` | 14 | 2 | 4.22% |
+
+An earlier draft of that template had 9 panels, no stacks, and 7.96% empty rows
+with a 62-px sliver band where a stack had fallen out of its row. Adding the
+stacks and trimming `margin_right` from the default 10 to 6 closed it. Use this
+measurement as the acceptance check:
+
+```python
+import numpy as np
+from PIL import Image
+
+a = np.array(Image.open("figure.png").convert("L"))
+empty = ~(a < 250).any(axis=1)
+# contiguous interior runs of empty rows; anything above ~6% is loose,
+# and a run under ~5% of the height is usually a stray sliver band
+```
+
+A sliver band means a `below=` stack's total height did not match its
+neighbours', so it was pushed onto its own row. Adjust the two stacked heights
+and re-render; the stack's subtree height, not the individual panel heights, is
+what sets the row.
 
 Per-panel palette assignment carries meaning. `color_cycle` accepts a palette
 name, a color list, or a single-color list to make one panel monochrome:
@@ -266,4 +310,10 @@ Step 5 is not optional at this density. Every defect found while validating this
 material, including overlapping heatmap legends and a silently wrapped row, was
 invisible in a zero exit code and a valid SVG.
 
-Runnable version: `templates/dense_figure.py`.
+## Files
+
+- `templates/dense_figure.py` — runnable 14-panel adaptation of these techniques,
+  with a `report_bands()` acceptance check.
+- `templates/upstream-showcase/figure1.py`, `figure2.py` — the upstream source,
+  verbatim and unmodified. Read these when a distilled rule here looks wrong or
+  you need an offset the prose does not cover. Both run against 0.7.0.

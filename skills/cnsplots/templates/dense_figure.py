@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 import cnsplots as cns
 
 # --- CONFIGURE ---------------------------------------------------------------
-MAX_WIDTH = 500
+MAX_WIDTH = 510
 FIGURE_TITLE = "Figure 1"
 OUTPUT = "dense_figure.svg"
 # -----------------------------------------------------------------------------
@@ -128,9 +128,14 @@ def main() -> None:
         loc="left",
     )
 
-    # --- Band 1 --------------------------------------------------------------
+    # --- Band 1: four tall narrow panels, then a stacked pair ----------------
+    # Tall panels set the band height. A short panel beside them would leave
+    # dead space above or below, so short panels go in `below=` stacks that
+    # together fill the same vertical extent. This interlocking is what makes a
+    # showcase figure dense; a flat row of mixed heights does not.
+
     # A: monochrome panel via a single-color cycle; anchored rotated ticks.
-    ax = mp.panel("A", 55, 95, color_cycle=[cns.VIOLET])
+    ax = mp.panel("A", 45, 100, margin_right=6, color_cycle=[cns.VIOLET])
     cns.boxplot(data=tips_df, x="day", y="total_bill", pairs=[("Thur", "Sun")])
     ax.set_title("Boxplot")
     ax.set_xlabel("")
@@ -138,23 +143,61 @@ def main() -> None:
         ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor"
     )
 
-    # B: two related colors pulled out of one palette by index.
+    # B: same height, so it shares the band cleanly.
+    ax = mp.panel("B", 45, 100, margin_right=6, color_cycle=[cns.CHOCOLATE])
+    cns.violinplot(data=iris_df, x="species", y="sepal_width")
+    ax.set_title("Violin")
+    ax.set_xlabel("")
+    ax.set_xticklabels(
+        ax.get_xticklabels(), rotation=30, ha="right", rotation_mode="anchor"
+    )
+
+    # C: two related colors pulled out of one palette by index.
     ax = mp.panel(
-        "B", 55, 95, color_cycle=cns.get_hexcolors_from_apalette([2, 4], "Bold")
+        "C",
+        50,
+        100,
+        margin_right=6,
+        color_cycle=cns.get_hexcolors_from_apalette([2, 4], "Bold"),
     )
     cns.stackplot(data=tips_df, x="day", stack="sex")
     ax.set_title("Stackplot")
     ax.get_legend().set_title(None)
 
-    # C: image panel. No ticks or y-label, so reclaim the reserve with a large
-    # negative pad_left. Title before set_axis_off; the title survives.
-    ax = mp.panel("C", 120, 95, pad_left=-45)
+    # D: image panel. No ticks or y-label, so reclaim the whole reserve with a
+    # large negative pad_left. Title before set_axis_off; the title survives.
+    ax = mp.panel("D", 120, 100, pad_left=-42, margin_right=6)
     ax.imshow(mpimg.imread(showcase_images / "image2.webp"))
     ax.set_title("Immunofluorescence")
     ax.set_axis_off()
 
-    # D: survival curve, then shorten the generated HR annotation.
-    ax = mp.panel("D", 95, 95, margin_right=0)
+    # E + F: a 45 + 45 stack occupying one column of the same band. Two short
+    # panels fill the height of the 100-px panels beside them.
+    ax = mp.panel("E", 80, 42, margin_right=0, color_cycle=[cns.VIOLET])
+    cns.barplot(data=tips_df, y="day", x="total_bill", errorbar="se", width=0.7)
+    ax.set_title("Barplot")
+    ax.set_ylabel("")
+
+    ax = mp.panel(
+        "F", 44, 38, below="E", margin_right=0,
+        color_cycle="Ecotyper3",
+    )
+    cns.pieplot(iris_df, "species", legend="right")
+    ax.set_title("Pie")
+    ax.get_legend().set_title(None)
+
+    # --- Band 2: square panels, plus a venn/donut stack ----------------------
+    # G: wrap the long ROC legend labels onto two lines.
+    ax = mp.panel("G", 90, 90, margin_right=6, color_cycle="ECharts")
+    ax = cns.rocplot(roc_df, "label", ["Model A", "Model B"])
+    ax.legend(loc="lower right", bbox_to_anchor=(1.08, 0.0))
+    for text in ax.get_legend().get_texts():
+        text.set_text(text.get_text().replace(" (AUC=", "\n(AUC="))
+        text.set_multialignment("left")
+    ax.set_title("ROC")
+
+    # H: survival curve, then shorten the generated HR annotation.
+    ax = mp.panel("H", 90, 90, margin_right=6)
     ax = cns.survivalplot(
         data=survival_df,
         duration="time",
@@ -170,27 +213,29 @@ def main() -> None:
     ax.legend(loc="upper right", bbox_to_anchor=(1.03, 1.0), borderaxespad=0)
     ax.set_title("Survival")
 
-    mp.newline()
+    ax = mp.panel("I", 90, 90, margin_right=6, color_cycle="Ecotyper3")
+    cns.kdeplot(data=iris_df, x="petal_length", hue="species")
+    ax.get_legend().set_title(None)
+    ax.set_title("KDE")
 
-    # --- Band 2 --------------------------------------------------------------
-    # E: wrap the long ROC legend labels onto two lines.
-    ax = mp.panel("E", 95, 90, color_cycle="ECharts")
-    ax = cns.rocplot(roc_df, "label", ["Model A", "Model B"])
-    ax.legend(loc="lower right", bbox_to_anchor=(1.08, 0.0))
-    for text in ax.get_legend().get_texts():
-        text.set_text(text.get_text().replace(" (AUC=", "\n(AUC="))
-        text.set_multialignment("left")
-    ax.set_title("ROC")
+    # J + K: two 40-px round plots stacked to match the 88-px squares. vennplot
+    # returns a venn object, so its title goes through mp.get_axes().
+    mp.panel("J", 38, 38, pad_left=32, margin_right=0, color_cycle="Tableau")
+    cns.vennplot(gene_sets, labels=("A", "B", "C"))
+    mp.get_axes("J").set_title("Venn")
 
-    # F: vennplot draws into the panel but returns a venn object, so the title
-    # goes through mp.get_axes().
-    mp.panel("F", 70, 70, pad_left=20, margin_right=25, color_cycle="Tableau")
-    cns.vennplot(gene_sets, labels=("Set A", "Set B", "Set C"))
-    mp.get_axes("F").set_title("Venn")
+    ax = mp.panel(
+        "K", 44, 44, below="J", margin_right=0,
+        color_cycle="Ecotyper3",
+    )
+    cns.donutplot(iris_df, "species", legend="right")
+    ax.set_title("Donut")
+    ax.get_legend().set_title(None)
 
-    # G: dotplot styled through its internal axes. hm_ax and ax_heatmap are
+    # --- Band 3: composite plotters and reserved space ----------------------
+    # L: dotplot styled through its internal axes. hm_ax and ax_heatmap are
     # different objects; the built-in title is blanked and replaced.
-    host_g = mp.panel("G", 70, 90, pad_top=15, pad_left=35, margin_right=15)
+    host_g = mp.panel("L", 70, 90, pad_top=15, pad_left=35, margin_right=15)
     counts = tips_df.groupby(["day", "sex"], observed=True).agg(
         {"total_bill": ["min", "size"]}
     )
@@ -227,15 +272,13 @@ def main() -> None:
     dp.cbar_ax.set_title("size", fontsize=6, pad=1, loc="right")
     dp.cbar_ax.set_ylabel("")
 
-    mp.newline()
+    # M: host for the upsetplot. Sized to sit beside the dotplot in the same
+    # band. Declared before the placeholder so no panel follows the embed.
+    host_h = mp.panel("M", 190, 90, pad_left=-70, pad_top=10, margin_right=8)
 
-    # --- Band 3 --------------------------------------------------------------
-    # H: host for the upsetplot. Declared here so no panel follows it.
-    host_h = mp.panel("H", 210, 115, pad_left=-80, pad_top=10, margin_right=0)
-
-    # I: placeholder for content that does not exist yet.
-    ax = mp.panel("I", 150, 115, margin_right=0)
-    cns.placeholderplot("Reserved slot (150x115)\nFill this in later.")
+    # N: placeholder for content that does not exist yet.
+    ax = mp.panel("N", 124, 90, margin_right=0)
+    cns.placeholderplot("Reserved slot (124x90)\nFill this in later.")
     ax.set_title("Placeholder")
 
     # Every panel now exists. upsetplot lays out on the figure and overflows a

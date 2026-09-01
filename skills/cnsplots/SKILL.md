@@ -31,7 +31,11 @@ block. Start from one instead of writing a layout from scratch:
 - `$SKILL_DIR/templates/multipanel_heterogeneous.py` — labeled A/B/C figure
 - `$SKILL_DIR/templates/mixed_grid_in_panel.py` — aligned grid inside a labeled figure
 - `$SKILL_DIR/templates/dense_figure.py` — showcase-style dense figure: per-panel
-  palettes, negative offsets, embedded image, composite plotters, embedded upsetplot
+  palettes, `below=` interlocking, negative offsets, embedded image, composite
+  plotters, embedded upsetplot
+- `$SKILL_DIR/templates/upstream-showcase/` — the upstream showcase Figure 1 and
+  Figure 2 source, vendored verbatim. Consult when a distilled rule looks wrong;
+  these files are authoritative over our prose.
 
 ## Hard rules
 

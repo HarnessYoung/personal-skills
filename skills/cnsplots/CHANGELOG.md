@@ -3,6 +3,39 @@
 All notable changes to this skill. Versioning is [SemVer](https://semver.org/)
 applied to the *skill*, independent of the `cnsplots` package version.
 
+## [1.3.0] — 2026-09-01
+
+Vendors the upstream showcase source as reference material, and tightens the
+dense-figure template to match its packing density.
+
+### Added
+- `templates/upstream-showcase/figure1.py` and `figure2.py` — the upstream
+  showcase source, copied verbatim and unmodified, with a `README.md` explaining
+  provenance and the two caveats observed at 0.7.0. A distilled description can
+  drift from what the author wrote; these files are authoritative over our prose.
+  Both verified to run standalone.
+
+### Changed
+- `templates/dense_figure.py` reworked from 9 panels to 14 in three interlocked
+  bands. Density is now measured rather than asserted, as the fraction of interior
+  all-empty pixel rows: upstream Figure 1 is 4.77%, Figure 2 is 5.44%, and this
+  template went from **7.96% to 4.22%**.
+- `references/dense-figures.md` leads with the finding that made the difference:
+  packing density comes from stacking short panels into a tall neighbour's
+  vertical band with `below=`, not from shaving margins. Both showcase figures use
+  three such stacks; the earlier template used none. Includes the whitespace
+  measurement as a reusable acceptance check.
+
+### Notes
+The earlier template's real defect was a 62-px sliver band, caused by a `below=`
+stack whose subtree height did not match its neighbours' and so was pushed onto
+its own row. The stack's subtree height, not the individual panel heights, sets
+the row.
+
+### Verified
+Against `cnsplots` 0.7.0 on Python 3.12.14 / matplotlib 3.10.9. See
+`skill.json` → `verification`.
+
 ## [1.2.0] — 2026-09-01
 
 Adds dense journal-figure technique, derived from reproducing the upstream

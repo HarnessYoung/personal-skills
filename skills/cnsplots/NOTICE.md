@@ -28,12 +28,20 @@ measured rcParams/settings style contract, and layout composition guidance.
 | `references/dense-figures.md` | Original prose; techniques derived from the upstream showcase example |
 | `scripts/*.py` | Original |
 | `templates/*.py` | Original code; `dense_figure.py` follows the structure of the upstream showcase example |
+| `templates/upstream-showcase/figure1.py`, `figure2.py` | **Vendored verbatim** from the upstream showcase; copyright Farid Rashidi, BSD-3-Clause |
+| `templates/upstream-showcase/README.md` | Original |
 
 The upstream showcase example
 (<https://cnsplots.farid.one/latest/examples/showcase.html>) was run and studied
-while writing `references/dense-figures.md` and `templates/dense_figure.py`. The
-prose and code here are written from scratch, but the techniques they teach come
-from that example and are credited to it under the same BSD-3-Clause terms.
+while writing `references/dense-figures.md` and `templates/dense_figure.py`. That
+prose and code are written from scratch, but the techniques they teach come from
+that example and are credited to it under the same BSD-3-Clause terms.
+
+`templates/upstream-showcase/` holds the example's two figure scripts copied
+**unmodified**, as reference material for cases where our distilled description
+drifts from what the author actually wrote. They carry the upstream copyright and
+license, are not our work, and should not be edited: re-copy them from upstream
+when it changes.
 
 ## License
 

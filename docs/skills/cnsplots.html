@@ -27,7 +27,7 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.2.0</span>
+  <span class="badge">v1.3.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
   <span class="badge verified">verified · cnsplots 0.7.0</span>
@@ -80,7 +80,7 @@ executable verification on top. Prefer upstream if you want to track it exactly.
   </div>
   <div class="grid-card">
     <h3><code>templates/</code></h3>
-    <p>Four runnable layout templates  -  uniform grid, labeled heterogeneous figure, an aligned grid embedded in a labeled figure, and a dense showcase-style figure.</p>
+    <p>Four runnable layout templates  -  uniform grid, labeled heterogeneous figure, an aligned grid embedded in a labeled figure, and a dense showcase-style figure. The upstream showcase source is vendored alongside them, verbatim, as reference material.</p>
   </div>
 </div>
 
@@ -122,6 +122,14 @@ Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
 <code>add_mode=False</code> does not suppress it, and three or more levels produce
 nothing at all. The skill requires inspecting <code>ax.texts</code> and either
 naming that test in the caption or removing the annotation deliberately.</p>
+
+<h3>Density comes from interlocking, not small margins</h3>
+<p>A packed figure stacks short panels into the vertical band a tall neighbour
+occupies, via <code>below=</code>. Both upstream showcase figures use three such
+stacks. Measured as the fraction of interior all-empty pixel rows, upstream
+Figure 1 is 4.77% and Figure 2 is 5.44%; the bundled dense template sits at 4.22%,
+down from 7.96% before the stacks were added. That metric is documented as a
+reusable acceptance check.</p>
 
 <h3>Row membership is not readable from either edge</h3>
 <p>Panels of differing heights share a row while agreeing on neither
