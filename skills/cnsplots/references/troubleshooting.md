@@ -148,7 +148,15 @@ defaults to `8`, which exceeds Nature's 7 pt cap for in-figure text (Cell allows
 **Figure is the wrong physical width** — sizes are pixels at 72 per inch, so
 convert the journal's millimetres: `px = mm / 25.4 * 72`. Nature double column
 183 mm is `max_width=519`, Cell 2-column 174 mm is `493`, Science full width
-184 mm is `522`. Verified: `max_width=519` yields a 183.1 mm figure.
+184 mm is `522`. Verified: `max_width=519` yields a 183.1 mm figure. The
+installed `settings.multipanel_max_width=540` (190.5 mm) exceeds all three
+journals' widest columns; set it explicitly.
+
+**Quantitative heatmap looks misleading in greyscale, or equal data steps look
+unequal** — the installed `palette_seq='gnuplot'` is non-monotonic in perceptual
+lightness (CIE L*) and collapses distinct values. Override at script top:
+`cns.settings.palette_seq = 'viridis'`. See
+`scripts/recommended_overrides.py`.
 
 **SVG text became outlines, or the warning about `mutool`** — install MuPDF
 (`brew install mupdf-tools`) for Illustrator-optimized SVG post-processing.

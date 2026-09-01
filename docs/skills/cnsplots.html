@@ -27,7 +27,7 @@
     <div class="container">
 
 <div class="badges page-badges">
-  <span class="badge">v1.6.0</span>
+  <span class="badge">v1.7.0</span>
   <span class="badge">derivative-enhancement</span>
   <span class="badge">BSD-3-Clause</span>
   <span class="badge verified">verified · cnsplots 0.7.0</span>
@@ -77,6 +77,10 @@ executable verification on top. Prefer upstream if you want to track it exactly.
   <div class="grid-card">
     <h3><code>dense-figures.md</code></h3>
     <p>Full journal figures: negative offsets that reclaim reserved space, embedded raster images, composite plotter internal axes, and reworking generated annotations. Derived from reproducing the upstream showcase.</p>
+  </div>
+  <div class="grid-card">
+    <h3><code>recommended_overrides.py</code></h3>
+    <p>Measured reasoning for overriding palette_seq to viridis (gnuplot is non-monotonic in CIE L* with CV 0.66 and 39 greyscale collisions) and moving Arial ahead of Helvetica (Cell requires Arial; macOS defaults embed Helvetica). Emits a ready three-line block with --code.</p>
   </div>
   <div class="grid-card">
     <h3><code>journal-specs.md</code> + <code>journal_preset.py</code></h3>
@@ -130,6 +134,16 @@ Kolmogorov-Smirnov test and prints <code>P = ...</code> on the axes.
 <code>add_mode=False</code> does not suppress it, and three or more levels produce
 nothing at all. The skill requires inspecting <code>ax.texts</code> and either
 naming that test in the caption or removing the annotation deliberately.</p>
+
+<h3>Two overrides are recommended before plotting</h3>
+<p>The installed <code>palette_seq='gnuplot'</code> is non-monotonic in perceptual
+lightness (CIE L*) with step-size CV 0.66 (identical to the rainbow counterexample
+<code>jet</code> at 0.65) and produces 39 value pairs &gt;0.1 apart in data space
+that collapse to within 1 L* in greyscale, making quantitative heatmaps misleading.
+<code>viridis</code> is strictly monotonic (CV 0.07, zero collisions). The installed
+<code>font_sans_serif</code> prioritises Helvetica, so Cell Press submissions from
+macOS embed Helvetica rather than the required Arial. Override both at script top;
+see <code>recommended_overrides.py --code</code>.</p>
 
 <h3>Two defaults are not journal-compliant</h3>
 <p>Read against the publishers' own author pages: <code>savefig_dpi</code> defaults
@@ -197,7 +211,7 @@ cns.savefig("multipanel.svg")</code></pre>
 
 <h2>Verification record</h2>
 <p>Tested 2026-09-01 on Python 3.12.14 with cnsplots 0.7.0 and matplotlib 3.10.9.
-All five scripts including <code>dump_style.py greyscale</code> and <code>journal_preset.py</code> run with correct exit
+All six scripts including <code>dump_style.py greyscale</code> (now CIE L*), <code>dump_style.py colormap</code>, <code>journal_preset.py</code> and <code>recommended_overrides.py</code> run with correct exit
 codes, all four templates plus the two vendored upstream showcase scripts execute
 and were rendered to PNG and visually inspected, and every published rcParams and
 settings value is measured from the installed package rather than transcribed. Panel

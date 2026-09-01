@@ -20,6 +20,9 @@ project root:
 - `$SKILL_DIR/scripts/check_env.py` — environment and dependency probe
 - `$SKILL_DIR/scripts/inspect_api.py` — installed signatures and docstrings
 - `$SKILL_DIR/scripts/dump_style.py` — measured rcParams, settings, palettes, colors
+- `$SKILL_DIR/scripts/recommended_overrides.py` — Arial-first font order and viridis
+  sequential colormap overrides, with measured perceptual-uniformity reasoning;
+  `--code` emits a ready block to paste at script top
 - `$SKILL_DIR/scripts/journal_preset.py` — Cell/Nature/Science figure limits in
   pixels, and which installed defaults violate them; `--code` emits a ready
   `settings.context(...)` block
@@ -82,6 +85,32 @@ Reports the interpreter, `cnsplots` version, backend availability, and whether
 ```bash
 python3 -m pip install cnsplots     # or: uv pip install cnsplots
 ```
+
+### 2. Apply recommended overrides
+
+Place these three lines at the top of every plotting script, before
+`cns.setup_matplotlib()`:
+
+```python
+import cnsplots as cns
+cns.settings.palette_seq = 'viridis'
+cns.settings.font_sans_serif = ('Arial', 'Helvetica', 'Helvetica Neue', 'DejaVu Sans')
+cns.setup_matplotlib()
+```
+
+Why: the installed `palette_seq='gnuplot'` is non-monotonic in perceptual
+lightness (CIE L* coefficient of variation 0.66, identical to jet's 0.65) and
+has 39 value pairs separated by more than 0.1 in data space that collapse to
+within 1 L* in greyscale, making quantitative heatmaps misleading. `viridis` is
+perceptually uniform (CV 0.07) and strictly monotonic. The installed
+`font_sans_serif` prioritises Helvetica, which means Cell Press submissions
+embed Helvetica rather than the required Arial; moving Arial to the front while
+keeping Helvetica and DejaVu Sans as fallbacks ensures compliance without
+breaking on systems that lack Arial. Full measurements and reasoning:
+[references/journal-specs.md](references/journal-specs.md). Emit the block with
+`python3 $SKILL_DIR/scripts/recommended_overrides.py --code`.
+
+### 3. Verify the target journal's requirements
 
 Without MuPDF's `mutool`, `cns.savefig("f.svg")` still works but falls back to
 plain matplotlib SVG with a warning (no Illustrator post-processing).

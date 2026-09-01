@@ -95,13 +95,28 @@ Nature's Wong palette, published with hex values: `#000000` black, `#e69f00`
 orange, `#56b4e9` sky blue, `#009e73` bluish green, `#f0e442` yellow, `#0072b2`
 blue, `#d55e00` vermillion, `#cc79a7` reddish purple.
 
+Nature's Wong palette, published with hex values: `#000000` black, `#e69f00`
+orange, `#56b4e9` sky blue, `#009e73` bluish green, `#f0e442` yellow, `#0072b2`
+blue, `#d55e00` vermillion, `#cc79a7` reddish purple.
+
 `cnsplots` ships `Cell`, `Nature`, `Science`, and `NEJM` palettes, but these are
 journal-*styled* palettes, not the publishers' accessibility recommendations. The
 `Science` palette contains `#ee0000` red and `#008b45` green at entries 1 and 2,
-which the journal's own guidance says not to pair. **Do not assume a palette named
-after a journal satisfies that journal's colour advice.** Check adjacent entries
-before using the first N colours of any of them, and see
+adjacent in the cycle, which the journal's own guidance says not to pair. **Do not
+assume a palette named after a journal satisfies that journal's colour advice.**
+Check adjacent entries before using the first N colours of any of them, and see
 [color-strategy.md](color-strategy.md).
+
+The installed `palette_seq='gnuplot'` is unsuitable for quantitative data:
+measured across 64 samples in CIE L* (perceptual lightness), it is non-monotonic
+(4 descending steps out of 63, maximum dip -0.62 L*) with a step-size coefficient
+of variation of 0.66, essentially identical to the canonical rainbow counterexample
+`jet` at 0.65. It produces 39 value pairs separated by more than 0.1 in data space
+that collapse to within 1 L* in greyscale (e.g. data values 0.19 and 0.43 render
+at L* 97.5 and 98.2). `viridis` is strictly monotonic (all 63 steps ascending) with
+CV 0.07 and zero greyscale collisions. Override at script top:
+`cns.settings.palette_seq = 'viridis'`. See
+`scripts/recommended_overrides.py`.
 
 ## Statistics in legends
 
@@ -148,6 +163,12 @@ Verified: `settings.context(title_fontsize=7, legend_fontsize=6)` sets
 restores on exit. `savefig_dpi=600` reaches `rcParams["savefig.dpi"]`.
 `mp.panel("a", ...)` accepts lowercase labels and `mp.get_axes("a")` retrieves
 them.
+
+The installed `settings.multipanel_max_width=540` (190.5 mm) exceeds all three
+journals' widest columns (Cell 174, Nature 183, Science 184). It is a canvas upper
+bound rather than a target size, so exceeding it does not automatically violate a
+journal requirement, but the default does not guide toward compliance. Set it
+explicitly for the target journal.
 
 `scripts/journal_preset.py` prints these numbers for a named journal so you do
 not have to transcribe them.

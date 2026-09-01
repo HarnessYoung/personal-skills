@@ -11,10 +11,16 @@ Sections:
   settings  every public cns.settings field and its current value
   palettes  qualitative palette names that cns.palettes() accepts
   colors    module-level color constants (cns.RED, ...)
+  greyscale CIE L* (perceptual lightness) for a discrete palette
+  colormap  perceptual uniformity metrics for a continuous colormap
 
 Usage:
   python3 dump_style.py                 # all sections, human readable
   python3 dump_style.py rcparams        # one section
+  python3 dump_style.py greyscale       # palette_qual (default)
+  python3 dump_style.py greyscale Ecotyper1
+  python3 dump_style.py colormap gnuplot
+  python3 dump_style.py colormap viridis
   python3 dump_style.py --markdown      # markdown tables, for reference docs
 """
 
@@ -24,7 +30,7 @@ import argparse
 import sys
 from typing import Any
 
-SECTIONS = ("rcparams", "settings", "palettes", "colors", "greyscale")
+SECTIONS = ("rcparams", "settings", "palettes", "colors", "greyscale", "colormap")
 
 # Candidate palette names probed against the installed package. Names that the
 # installed cns.palettes() rejects are reported as unavailable rather than
@@ -106,14 +112,35 @@ def collect_colors() -> list[tuple[str, str]]:
     return [(n, getattr(cns, n)) for n in COLOR_CONSTANTS if hasattr(cns, n)]
 
 
-def check_greyscale(palette: str, count: int | None = None) -> list[tuple]:
-    """Report perceived lightness of a palette's colors and flag close pairs.
+def srgb_to_Lstar(rgb):
+    """Convert sRGB to CIE L* (perceptual lightness).
+    
+    rgb: array-like of shape (..., 3) with values in [0, 1].
+    Returns L* in [0, 100], where 0 is black and 100 is white.
+    """
+    import numpy as np
+    rgb = np.asarray(rgb)
+    # Linearise sRGB
+    linear = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    # Relative luminance Y (D65 illuminant)
+    Y = 0.2126 * linear[..., 0] + 0.7152 * linear[..., 1] + 0.0722 * linear[..., 2]
+    # CIE L*
+    epsilon = (6 / 29) ** 3
+    kappa = (29 / 3) ** 3
+    f = np.where(Y > epsilon, np.cbrt(Y), (kappa * Y + 16) / 116)
+    return 116 * f - 16
+
+
+def check_greyscale(palette: str, count: int | None = None) -> tuple:
+    """Report CIE L* (perceptual lightness) of a palette and flag close pairs.
 
     Series that differ only in hue collapse when printed in greyscale. This
-    computes Rec. 601 luma for each entry and flags pairs within 0.10, which are
-    hard to tell apart without color.
+    computes CIE L* for each entry and flags pairs within 5 L*, which are hard to
+    tell apart without color. Replaces the old Rec. 601 luma with the rigorous
+    perceptual measure.
     """
     import matplotlib.colors as mcolors
+    import numpy as np
 
     import cnsplots as cns
 
@@ -123,20 +150,63 @@ def check_greyscale(palette: str, count: int | None = None) -> list[tuple]:
 
     rows = []
     for index, color in enumerate(colors):
-        r, g, b = mcolors.to_rgb(color)
-        luma = 0.299 * r + 0.587 * g + 0.114 * b
-        rows.append((index, mcolors.to_hex(color), luma))
+        rgb = np.array(mcolors.to_rgb(color))
+        Lstar = float(srgb_to_Lstar(rgb))
+        rows.append((index, mcolors.to_hex(color), Lstar))
 
     clashes = [
         (a[0], b[0], abs(a[2] - b[2]))
         for i, a in enumerate(rows)
         for b in rows[i + 1 :]
-        if abs(a[2] - b[2]) < 0.10
+        if abs(a[2] - b[2]) < 5.0
     ]
     return rows, clashes
 
 
-def emit_plain(sections: tuple[str, ...]) -> None:
+def check_colormap(name: str, samples: int = 64) -> dict:
+    """Measure perceptual uniformity of a colormap across its range.
+    
+    Returns a dict with:
+      samples: number of points sampled
+      Lstar_range: (min, max) CIE L*
+      monotonic: True if L* never decreases by more than 0.5
+      step_cv: coefficient of variation of |ΔL*| between adjacent samples
+      descending_steps: count of steps where L* drops by >0.5
+      collisions: list of (data_a, data_b, delta_Lstar) for pairs >0.1 apart
+                  in data space that are within 1 L* in greyscale
+    """
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    cmap = plt.get_cmap(name)
+    xs = np.linspace(0, 1, samples)
+    rgb = np.array(cmap(xs))[:, :3]
+    Lstar = srgb_to_Lstar(rgb)
+    
+    d = np.diff(Lstar)
+    monotonic = (d >= -0.5).all()
+    descending = int((d < -0.5).sum())
+    step_cv = float(np.std(np.abs(d)) / np.mean(np.abs(d)))
+    
+    collisions = [
+        (round(xs[i], 2), round(xs[j], 2), round(abs(Lstar[i] - Lstar[j]), 2))
+        for i in range(len(xs))
+        for j in range(i + 8, len(xs))
+        if abs(Lstar[i] - Lstar[j]) < 1.0
+    ]
+    
+    return {
+        "samples": samples,
+        "Lstar_range": (round(float(Lstar.min()), 1), round(float(Lstar.max()), 1)),
+        "monotonic": bool(monotonic),
+        "step_cv": round(step_cv, 2),
+        "descending_steps": descending,
+        "collisions": len(collisions),
+        "collision_examples": collisions[:5],
+    }
+
+
+def emit_plain(sections: tuple[str, ...], extra_args: list[str]) -> None:
     import cnsplots as cns
 
     print(f"cnsplots {cns.__version__}  python {sys.version.split()[0]}")
@@ -167,18 +237,37 @@ def emit_plain(sections: tuple[str, ...]) -> None:
             print(f"cns.{name:<10} {value}")
 
     if "greyscale" in sections:
-        target = cns.settings.palette_qual
+        target = extra_args[0] if extra_args else cns.settings.palette_qual
         rows, clashes = check_greyscale(target)
         print(f"\n== greyscale separation: {target} ==")
-        for index, hex_value, luma in rows:
-            bar = "#" * max(1, round(luma * 40))
-            print(f"  [{index}] {hex_value}  luma={luma:.3f}  {bar}")
+        for index, hex_value, Lstar in rows:
+            bar = "#" * max(1, round(Lstar / 100 * 40))
+            print(f"  [{index}] {hex_value}  L*={Lstar:5.1f}  {bar}")
         if clashes:
-            print("  pairs within 0.10 luma (collapse in greyscale):")
-            for a, b, delta in clashes:
-                print(f"    [{a}] vs [{b}]  delta={delta:.3f}")
+            print(f"  pairs within 5 L* (hard to distinguish in greyscale): {len(clashes)}")
+            for a, b, delta in clashes[:5]:
+                print(f"    [{a}] vs [{b}]  ΔL*={delta:.1f}")
+            if len(clashes) > 5:
+                print(f"    ... and {len(clashes) - 5} more")
         else:
-            print("  no pairs within 0.10 luma")
+            print("  no pairs within 5 L*")
+
+    if "colormap" in sections:
+        target = extra_args[0] if extra_args else cns.settings.palette_seq
+        result = check_colormap(target)
+        print(f"\n== colormap uniformity: {target} ==")
+        print(f"  L* range       : {result['Lstar_range'][0]:.1f} - {result['Lstar_range'][1]:.1f}")
+        print(f"  monotonic      : {result['monotonic']}")
+        print(f"  step CV        : {result['step_cv']:.2f}  (0 = perfectly uniform)")
+        print(f"  descending     : {result['descending_steps']} / {result['samples']-1} steps")
+        print(f"  collisions     : {result['collisions']} value pairs >0.1 apart within 1 L*")
+        if result["collision_examples"]:
+            print("  examples:")
+            for a, b, dL in result["collision_examples"]:
+                print(f"    data {a} vs {b} -> ΔL* {dL}")
+        verdict = "uniform" if result["monotonic"] and result["step_cv"] < 0.35 else (
+            "monotonic, uneven" if result["monotonic"] else "NON-monotonic")
+        print(f"  verdict        : {verdict}")
 
 
 def emit_markdown(sections: tuple[str, ...]) -> None:
@@ -215,11 +304,13 @@ def emit_markdown(sections: tuple[str, ...]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    # No default= here: argparse validates a list default against choices as a
-    # single value and rejects it. Empty means "all", resolved below.
-    parser.add_argument("sections", nargs="*", choices=SECTIONS,
-                        help="sections to dump (default: all)")
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("section", nargs="?", choices=SECTIONS,
+                        help="section to dump (default: all)")
+    parser.add_argument("args", nargs="*",
+                        help="arguments for greyscale (palette name) or colormap (colormap name)")
     parser.add_argument("--markdown", action="store_true",
                         help="emit markdown tables for reference docs")
     args = parser.parse_args()
@@ -231,11 +322,11 @@ def main() -> int:
               "run scripts/check_env.py", file=sys.stderr)
         return 1
 
-    sections = tuple(args.sections) or SECTIONS
+    sections = (args.section,) if args.section else SECTIONS
     if args.markdown:
         emit_markdown(sections)
     else:
-        emit_plain(sections)
+        emit_plain(sections, args.args)
     return 0
 
 

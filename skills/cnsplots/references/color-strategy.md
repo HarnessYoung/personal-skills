@@ -121,8 +121,16 @@ Match the encoding to the data, and do not mix the roles:
 - **Qualitative** (`Ecotyper1`-`6`, `Cell`, `Nature`, `Science`, `NEJM`,
   `Tableau`, `Bold`, `ECharts`, `Set1`-`3`, ...) for unordered categories, via
   `color_cycle=`.
-- **Sequential** for magnitude, via `color_map=` / `cmap=`. `settings.palette_seq`
-  defaults to `gnuplot`.
+- **Sequential** for magnitude, via `color_map=` / `cmap=`. The installed
+  `settings.palette_seq` defaults to `gnuplot`, which is **unsuitable**: measured
+  in CIE L* (perceptual lightness), it is non-monotonic with step-size CV 0.66
+  (identical to the rainbow counterexample `jet` at 0.65) and produces 39 value
+  pairs >0.1 apart in data space that collapse to within 1 L* in greyscale. Equal
+  data steps look unequal, and distinct values become indistinguishable when
+  printed. Override at script top with `cns.settings.palette_seq = 'viridis'`;
+  `viridis` is strictly monotonic (CV 0.07, zero collisions), starts dark
+  (readable on white), and satisfies Nature's "avoid rainbow scales" guidance. See
+  `scripts/recommended_overrides.py`.
 - **Diverging** (`BuRd_custom`, `OrBu_custom`, `BlueRed`) for values around a
   meaningful midpoint: log fold change, z-score, difference from control. The
   showcase heatmap uses `BuRd_custom` on z-scores, which is correct; a sequential
