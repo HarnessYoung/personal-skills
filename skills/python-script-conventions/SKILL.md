@@ -52,11 +52,17 @@ Constants → data models → functions → CLI → main. Each section depends o
 
 ### 4. Verify before finalizing
 
-Run the verification checklist (§7) or execute:
+Walk the checklist in §7 against the finished file. Read the whole script top
+to bottom rather than checking items from memory — the layout rules are about
+the file as a whole, and the most commonly missed violations (an import added
+inside a function, a leftover unused import) are invisible when you only look
+at the lines you just edited.
 
-```bash
-python3 $SKILL_DIR/scripts/verify_conventions.py path/to/your_script.py
-```
+For the mechanical subset, lean on real tooling rather than a bespoke script:
+`ruff check` catches unused imports, imports not at top of file (E402), and
+`print` calls (T201) if you enable `flake8-print`. The rules that carry the
+most weight here — single-line docstrings, section layout, meaningful module
+docstrings — are judgement calls no linter settles for you.
 
 ---
 

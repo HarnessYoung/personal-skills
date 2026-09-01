@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # =============================================================================
-# CHECKLIST BEFORE FINALIZING:
-# - [ ] Replace module docstring with actual description (lines 14-42)
-# - [ ] Update REQUIRED_COLUMNS to match your input (line 64)
-# - [ ] Implement core logic in filter_dataframe() (lines 87-113)
-# - [ ] Update parse_args() with your actual CLI parameters (lines 117-146)
-# - [ ] Verify all imports are used (no unused imports)
-# - [ ] Run: python3 $SKILL_DIR/scripts/verify_conventions.py this_file.py
+# CHECKLIST BEFORE FINALIZING (delete this block when done):
+# - [ ] Replace the module docstring: title, description, Input, Output, Usage
+# - [ ] Resolve every `REPLACE THIS` marker below
+# - [ ] Update REQUIRED_COLUMNS to match the real input
+# - [ ] Implement the real logic in filter_dataframe(), or rename it
+# - [ ] Update parse_args() with the actual CLI parameters
+# - [ ] Verify every import is used, and that none sit inside a function body
+# - [ ] Walk the full checklist in the skill's SKILL.md section 7
 # =============================================================================
 
 # (Optional) PEP 723 inline script metadata for self-contained execution with `uv`.

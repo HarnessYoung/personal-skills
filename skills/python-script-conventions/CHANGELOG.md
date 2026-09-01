@@ -5,7 +5,6 @@
 ### Added
 - **Hard Rules section** — Non-negotiable conventions listed upfront (imports location, loguru usage, type hints, pathlib, dataclass flags, entry point pattern)
 - **Workflow section** — Clear 4-step process (choose script type → start from template → fill sections → verify)
-- **Automated verification script** (`scripts/verify_conventions.py`) — AST-based checker for section headers, import location, no print() calls, entry point pattern, pathlib usage, dataclass flags, and loguru import
 - **Template enhancements** — Added checklist at top, `REPLACE THIS` markers throughout, inline comments explaining dataclass flags (`kw_only`, `slots`, `frozen`)
 
 ### Changed
@@ -15,20 +14,14 @@
 - **Domain scope clarified** — Explicitly states "developed for bioinformatics data-processing workflows, but patterns apply to any data-science script"
 - **Path references standardized** — All template references now use `$SKILL_DIR/templates/agent_script_template.py`
 - **Template section header** — Renamed "MAIN ENTRY POINT" to "MAIN EXECUTION" for consistency with documentation
-- **Verification script rewritten** — Now uses AST parsing instead of regex, fixing all false positives and false negatives
+- **Verification step (§Workflow 4)** — Now points at the §7 checklist plus `ruff check` for the mechanical rules, instead of a bundled script
 
-### Fixed (in verify_conventions.py rewrite)
-- **False negative #1**: Nested imports inside functions/classes now correctly detected (was missed in files without section headers)
-- **False negative #2**: Dataclass flags (`kw_only`, `slots`, `frozen`) now checked individually; missing any flag is reported
-- **False negative #3**: Multi-line dataclass decorators now handled correctly
-- **False positive #4**: No longer reports `print` when it appears in docstrings, comments, or string literals
-- **False positive #5**: Now accepts both single-line (`§N SECTION`) and three-line banner formats from SKILL.md
-- **Self-consistency**: Verification script now passes its own checks (with appropriate CLI-tool exemption)
+### Removed
+- **`scripts/verify_conventions.py`** — Added and then removed within this same release. A regex implementation was written first, and testing against six fixtures found five defects: nested imports were undetectable in files lacking section banners (the check keyed off the banner itself), a `@dataclass(kw_only=True)` config missing `slots`/`frozen` passed cleanly, `print` appearing in a docstring or string literal was reported as a violation, and a script following the three-line banner format documented in §1.2 was rejected because only the template's one-line format was matched. An AST rewrite fixed those cases, but the result still only covered the mechanically checkable rules, and it needed a `Convention-exempt` escape hatch to pass its own checks — a marker any script could add to silence the checker. `ruff` already covers unused imports, module-level import placement (E402), and `print` calls (T201) with far more rigor, and the rules that matter most here (single-line docstrings, section layout, docstring quality) are judgement calls. Shipping a bespoke checker that is weaker than `ruff` on the overlap and silent on the rest was not worth the maintenance surface.
 
 ### Improved
 - Progressive disclosure — Advanced patterns summarized in main doc, details in references/
 - Usability — Matches cnsplots skill structure (Hard Rules → Workflow → detailed sections)
-- Verification — Checklist now actionable via robust AST-based automated script
 
 ## [1.4.0] — 2026-08-12
 Migrated from Sotdo/personal_skills. Original work by Yusheng Yang.

@@ -10,8 +10,8 @@
   "license": "MIT",
   "verification": {
     "date": "2026-09-01",
-    "method": "self-consistency check + template execution + automated verification script",
-    "verified_against": "Python 3.12.5",
+    "method": "template compiled with py_compile; conventions reviewed against the section-7 checklist by hand",
+    "verified_against": "Python 3.14.6",
     "result": "pass"
   }
 }
