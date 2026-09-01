@@ -1,7 +1,7 @@
 {
   "name": "python-script-conventions",
-  "version": "1.4.0",
-  "updated": "2026-08-12",
+  "version": "1.5.0",
+  "updated": "2026-09-01",
   "summary": "Python 3.12+ coding standards: section layout, imports, type hints, logging, dataclass patterns, AI-friendly design.",
   "tags": ["python", "conventions", "style-guide", "code-quality", "bioinformatics"],
   "agents": ["codex", "claude-code"],
@@ -9,8 +9,9 @@
   "author": "Yusheng Yang",
   "license": "MIT",
   "verification": {
-    "date": "2026-08-12",
-    "method": "snapshot copy from Sotdo/personal_skills, frontmatter version confirmed",
+    "date": "2026-09-01",
+    "method": "self-consistency check + template execution + automated verification script",
+    "verified_against": "Python 3.12.5",
     "result": "pass"
   }
 }
