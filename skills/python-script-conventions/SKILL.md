@@ -1,7 +1,7 @@
 ---
 name: python-script-conventions
-description: Use when generating, modifying, or reviewing Python scripts (3.12+). Specifies section layout, import ordering, type system, logging, dataclass patterns, and AI-agent-friendly design principles. Load this skill whenever creating or editing a .py file — especially for bioinformatics/data-science scripts.
-version: 1.4.0
+description: Use when generating, modifying, or reviewing Python scripts (3.12+). Specifies section layout, import ordering (including project module imports via Path(__file__)), type system, logging, dataclass patterns, and AI-agent-friendly design principles. Load this skill whenever creating or editing a .py file — especially for bioinformatics/data-science scripts.
+version: 1.6.0
 author: Yusheng Yang
 license: MIT
 metadata:
@@ -27,6 +27,7 @@ Apply these rules thoughtfully — if a rule would make a particular script wors
 ## Hard Rules
 
 - **All imports in the top-level IMPORTS section** — never in function bodies or class definitions
+- **Project module imports via `Path(__file__).parent.resolve()`** — avoid hardcoded workflow paths (see §1.4)
 - **Use `loguru` exclusively** — no `print()` or stdlib `logging`
 - **Type hints on every function signature** — both parameters and return value
 - **Single-line docstrings** — type hints carry the type information
@@ -155,7 +156,7 @@ Always use the `$SKILL_DIR/templates/agent_script_template.py` as the starting p
 
 ### 1.3 Import Ordering
 
-Group imports into three blocks, sorted alphabetically within each block:
+Group imports into blocks, sorted alphabetically within each block. When importing project modules, use the path setup pattern described in §1.4.
 
 ```python
 # 1. Standard Library Imports
@@ -173,7 +174,67 @@ import pandas as pd
 from loguru import logger
 ```
 
-### 1.4 Entry Point Pattern
+### 1.4 Project Module Imports
+
+When a script needs to import modules from the project's `src/` directory, use dynamic path resolution to avoid hardcoding workflow paths:
+
+```python
+# =============================================================================
+# IMPORTS
+# =============================================================================
+# Standard Library
+import sys
+from pathlib import Path
+
+# Project path setup (must come before project imports)
+SCRIPT_DIR = Path(__file__).parent.resolve()
+sys.path.append(str((SCRIPT_DIR / "../../src").resolve()))
+
+# Project imports
+from io_table import read_parquet  # noqa: E402
+from figures import (  # noqa: E402
+    apply_house_style,
+    grid_axes,
+    fit_panels,
+    save_dual,
+)
+
+# Third-party imports
+from loguru import logger
+import pandas as pd
+```
+
+**Key points:**
+
+- Use `Path(__file__).parent.resolve()` to get the script's directory
+- Build the relative path to `src/` based on the script's location (adjust `../../src` as needed)
+- Add `# noqa: E402` to project imports — E402 (module level import not at top of file) is unavoidable here since `sys.path` must be modified first
+- This pattern stays within the IMPORTS section — it's import-related setup, not a separate section
+
+**When to use this pattern:**
+
+- Workflow scripts in `scripts/` or similar that need to import from `src/`
+- Any script outside the package structure that needs project modules
+
+**When NOT to use:**
+
+- Scripts already inside `src/` (use relative imports: `from . import module`)
+- Projects installed as packages (`pip install -e .` makes imports available directly)
+- Standalone scripts with no project dependencies
+
+**Anti-pattern to avoid:**
+
+```python
+# ❌ Don't hardcode the workflow path
+from workflow.src.io_table import read_parquet
+```
+
+This breaks when:
+- The script is moved to a different location
+- The project is renamed
+- The script is run from a different working directory
+
+### 1.5 Entry Point Pattern
 
 All scripts must use the following pattern at the bottom:
 
@@ -187,7 +248,7 @@ This ensures:
 - Exit codes are propagated correctly
 - `main()` returns an integer (0 for success, non-zero for error)
 
-### 1.5 Configuration Dataclass
+### 1.6 Configuration Dataclass
 
 Use `@dataclass(kw_only=True, slots=True, frozen=True)` for configuration:
 
@@ -205,7 +266,7 @@ class AppConfig:
 - `slots=True` → reduces memory footprint
 - `frozen=True` → makes the instance immutable (most configs shouldn't change after creation)
 
-### 1.6 Logging with Loguru
+### 1.7 Logging with Loguru
 
 Use `loguru` for all output. Never use `print()` or `logging` stdlib:
 
@@ -437,27 +498,29 @@ For keyword-profile analysis (categorizing every word in a corpus), use exact ma
 
 1. **Using `print()` instead of `logger`.** All output must go through `loguru`. The only exception: piping structured data to stdout for shell consumption (rare).
 
-2. **Adding a new import inside a function body, class definition, or section header instead of the top-level IMPORTS section.** This happens most often when *patching* an existing script — the natural instinct is to add the import next to where the new code goes. Every import must live in the IMPORTS block at file scope. Imports placed elsewhere confuse the section structure, bypass the linting pass, and make the next editor hunt for where a symbol is imported. Fix: before applying a patch that needs a new import, scroll to the IMPORTS block, add it in the correct group, then reference it in the body.
+2. **Adding a new import inside a function body, class definition, or section header instead of the top-level IMPORTS section.** This happens most often when *patching* an existing script — the natural instinct is to add the import next to where the new code goes. Every import must live in the IMPORTS block at file scope. Imports placed elsewhere confuse the section structure, bypass the linting pass, and make the next editor hunt for where a symbol is imported. Fix: before applying a patch that needs a new import, scroll to the IMPORTS block, add it in the correct group (see §1.3 and §1.4 for grouping), then reference it in the body.
 
-3. **Unused imports left after refactoring.** Imports that were added during development but became unused after the code was refactored are easy to miss — the linter only catches them if a type checker like Pyright or `ruff check` is configured. Before finalising a script, scan the import block and verify every symbol is actually referenced in the body. The checklist below catches this; the pitfall section reminds you to look for it even when no linter is active.
+3. **Hardcoding workflow paths in imports** (e.g., `from workflow.src.io_table import read_parquet`). This breaks when the script is moved, the project is renamed, or the working directory changes. Use the §1.4 pattern instead: `Path(__file__).parent.resolve()` + relative path to `src/` + `sys.path.append`.
+
+4. **Unused imports left after refactoring.** Imports that were added during development but became unused after the code was refactored are easy to miss — the linter only catches them if a type checker like Pyright or `ruff check` is configured. Before finalising a script, scan the import block and verify every symbol is actually referenced in the body. The checklist below catches this; the pitfall section reminds you to look for it even when no linter is active.
 
 ### 6.2 Type System & Configuration
 
-4. **Forgetting `frozen=True` on config dataclasses.** Most configs should be immutable after creation. Only use `frozen=False` if the application genuinely needs hot-reloading.
+5. **Forgetting `frozen=True` on config dataclasses.** Most configs should be immutable after creation. Only use `frozen=False` if the application genuinely needs hot-reloading.
 
-5. **Using `os.path.join()` / `os.path.exists()` instead of `pathlib.Path`.** The template imports `Path` and uses it throughout. Keep that consistent — `pathlib` is more readable, composable, and less error-prone.
+6. **Using `os.path.join()` / `os.path.exists()` instead of `pathlib.Path`.** The template imports `Path` and uses it throughout. Keep that consistent — `pathlib` is more readable, composable, and less error-prone.
 
-6. **Hardcoded string markers instead of `StrEnum`.** When the script uses column names, operation modes, or categorical statuses that appear in multiple places, define them as a `StrEnum`. This prevents silent breakage when a string changes in one place but not another.
+7. **Hardcoded string markers instead of `StrEnum`.** When the script uses column names, operation modes, or categorical statuses that appear in multiple places, define them as a `StrEnum`. This prevents silent breakage when a string changes in one place but not another.
 
-7. **Creating decorators for single-use abstractions.** A decorator with only one consumer adds indirection without benefit. The rule: only create a custom decorator when it eliminates repetitive boilerplate across **3+** functions.
+8. **Creating decorators for single-use abstractions.** A decorator with only one consumer adds indirection without benefit. The rule: only create a custom decorator when it eliminates repetitive boilerplate across **3+** functions.
 
-8. **Writing multi-line docstrings with formal Parameters/Returns blocks.** Section 3.1 mandates single-line docstrings — type hints carry the type information. When a core function has complex arguments, the natural instinct is to write NumPy-style or Sphinx-style docstrings with `Parameters\n----------\n...\nReturns\n-------\n...`. This violates the rule. The fix: keep the docstring to one concise line and let the type annotations do the rest. If the function genuinely needs narrative context, put it in a comment block inside the function body rather than in the docstring. This is the most commonly-violated rule because "important" functions feel like they deserve more documentation — resist the urge.
+9. **Writing multi-line docstrings with formal Parameters/Returns blocks.** Section 3.1 mandates single-line docstrings — type hints carry the type information. When a core function has complex arguments, the natural instinct is to write NumPy-style or Sphinx-style docstrings with `Parameters\n----------\n...\nReturns\n-------\n...`. This violates the rule. The fix: keep the docstring to one concise line and let the type annotations do the rest. If the function genuinely needs narrative context, put it in a comment block inside the function body rather than in the docstring. This is the most commonly-violated rule because "important" functions feel like they deserve more documentation — resist the urge.
 
 ### 6.3 Control Flow & Domain Logic
 
-9. **Not returning exit codes from `main()`.** Shells, CI pipelines, and scripts that check `$?` can detect errors. The template already does this — just remember to return non-zero from `main()` on failure branches.
+10. **Not returning exit codes from `main()`.** Shells, CI pipelines, and scripts that check `$?` can detect errors. The template already does this — just remember to return non-zero from `main()` on failure branches.
 
-10. **Deep `if-elif-else` chains for categorical logic.** Two alternatives depending on the problem:
+11. **Deep `if-elif-else` chains for categorical logic.** Two alternatives depending on the problem:
 
    - **Fixed enum variants** (the category set is known and closed): use
      `match...case` instead of a chain. It's more readable and the type
@@ -477,15 +540,17 @@ For keyword-profile analysis (categorizing every word in a corpus), use exact ma
      phrase pre‑tokenisation. See [references/stem-prefix-classification.md](references/stem-prefix-classification.md)
      under this skill.
 
-11. **Forgetting to re-check domain-specific classification logic after expanding keyword lists.** When adding words to modifier or category keyword lists in domain-specific scripts (e.g., bioinformatics phenotype classification), fewer items may be classified as one category and more as another (e.g., Multiple → Single shift). After any expansion, re-run the full pipeline and verify the count deltas are expected and justified. Verify with appropriate summary statistics in the merged output.
+12. **Forgetting to re-check domain-specific classification logic after expanding keyword lists.** When adding words to modifier or category keyword lists in domain-specific scripts (e.g., bioinformatics phenotype classification), fewer items may be classified as one category and more as another (e.g., Multiple → Single shift). After any expansion, re-run the full pipeline and verify the count deltas are expected and justified. Verify with appropriate summary statistics in the merged output.
 
 ---
 
 ## 7. Verification Checklist
 
 - [ ] Sections follow the ordered layout (IMPORTS → DECORATORS → CONSTANTS → CONFIG → LOGGING → CORE → MAIN)
-- [ ] Imports grouped: standard library → data processing → third-party, sorted alphabetically within each group
+- [ ] Imports grouped: standard library → path setup (if needed) → project imports → data processing → third-party, sorted alphabetically within each group
 - [ ] All imports are in the top-level IMPORTS section — none in function bodies, class definitions, or section headers
+- [ ] Project module imports use `Path(__file__).parent.resolve()` + relative path, not hardcoded workflow paths (§1.4)
+- [ ] Project imports marked with `# noqa: E402` when following `sys.path.append`
 - [ ] No unused imports — every imported module/name is referenced in the script body
 - [ ] No `print()` calls — all runtime output uses `loguru`
 - [ ] `pathlib.Path` used everywhere (no `os.path`)
